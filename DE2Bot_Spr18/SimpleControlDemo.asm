@@ -86,6 +86,7 @@ Main:
 	
 
 
+
 ; As a quick demo of the movement control, the robot is 
 ; directed to
 ; - turn in-place 90 degrees clockwise,
@@ -100,45 +101,45 @@ Main:
 	; The robot should automatically start moving,
 	; trying to match these desired parameters.
 
-DistanceTest:
-	LOADI	200
-	STORE	DVel
-	;CALL	ControlMovement
-	
-	IN		DIST5
-	STORE	SonVal5
-	OUT 	SSEG1
-	
-	ADDI	&H7FFF
-	CALL	Neg
-	JZERO	DistanceTest	; Invalid value received
-	LOAD	SonVal5
-	
-	ADDI	-800
-	OUT		SSEG2
-	JNEG	DistanceTest
-	
-	; Stop robot and halt
-	LOAD	Zero
-	STORE	SONAREN
-	STORE	DVel
-	CALL	ControlMovement
-	JUMP	Forever
+;DistanceTest:
+;	LOADI	200
+;	STORE	DVel
+;	;CALL	ControlMovement
+;	
+;	IN		DIST5
+;	STORE	SonVal5
+;	OUT 	SSEG1
+;	
+;	ADDI	&H7FFF
+;	CALL	Neg
+;	JZERO	DistanceTest	; Invalid value received
+;	LOAD	SonVal5
+;	
+;	ADDI	-800
+;	OUT		SSEG2
+;	JNEG	DistanceTest
+;	
+;	; Stop robot and halt
+;	LOAD	Zero
+;	STORE	SONAREN
+;	STORE	DVel
+;	CALL	ControlMovement
+;	JUMP	Forever
 
 		
-Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
-	CALL   GetThetaErr ; get the heading error
-	CALL   Abs         ; absolute value
-	OUT    LCD         ; useful debug info
-	ADDI   -5          ; check if within 5 degrees of target
-	JPOS   Test1       ; if not, keep testing
+;Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
+;	CALL   GetThetaErr ; get the heading error
+;	CALL   Abs         ; absolute value
+;	OUT    LCD         ; useful debug info
+;	ADDI   -5          ; check if within 5 degrees of target
+;	JPOS   Test1       ; if not, keep testing
 	
 	; the robot is now within 5 degrees of 270
 	
-	LOAD   Mask5       ; defined below as 0b0100
-	OUT    SONAREN     ; enable sonar 2
-	LOAD   FMid       ; defined below as 100
-	STORE  DVel
+;	LOAD   Mask5       ; defined below as 0b0100
+;	OUT    SONAREN     ; enable sonar 2
+;	LOAD   FMid       ; defined below as 100
+;	STORE  DVel
 
 
 ;Test2:
@@ -155,17 +156,17 @@ Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
 ;
 ;	JUMP   Test2       ; still going
 
-Modified:
-	IN		DIST5
-	OUT 	SSEG1
-	ADDI	-915
-	
-	LOADI  0
-	STORE  DVel        ; turn in-place (zero velocity)
-	LOADI  270         ; 270 is 90 to the right
-	STORE  DTheta      ; desired heading
-	
-	JUMP Die
+;Modified:
+;	IN		DIST5
+;	OUT 	SSEG1
+;	ADDI	-915
+;	
+;	LOADI  0
+;	STORE  DVel        ; turn in-place (zero velocity)
+;	LOADI  270         ; 270 is 90 to the right
+;	STORE  DTheta      ; desired heading
+;	
+;	JUMP Die
 	
 
 
@@ -189,8 +190,108 @@ Forever:
 ; Timer ISR.  Currently just calls the movement control code.
 ; You could, however, do additional tasks here if desired.
 CTimer_ISR:
-	CALL   ControlMovement
-	RETI   ; return from ISR
+	;CALL   ControlMovement
+SectionOne:
+;Assuming that the sensor reading is short range
+	LOAD Realigning
+	JPOS Realign
+	IN DIST5
+	SUB LastSonarReading
+	STORE Delta
+	JPOS FacingAway
+	JNEG FacingTowards
+	JZERO Realign
+
+FacingAway:
+	SUB Threshold
+	JNEG BeginRealign
+	;turn clockwise 1 degree
+	LOAD DTheta
+	ADDI 1
+	CALL Mod360
+	STORE DTheta
+	
+	CALL ControlMovement
+	RETI
+	
+FacingTowards:
+	ADD Threshold
+	JPOS BeginRealign
+	;turn counterclockwise 1 degree
+	LOAD DTheta
+	ADDI -1
+	CALL Mod360
+	STORE DTheta
+	
+	CALL ControlMovement
+	RETI
+	
+Realign:
+	;We are realigning. Check if we have traveled the correct distance
+	IN 		XPOS
+	STORE 	L2X
+	IN 		YPOS
+	STORE 	L2Y
+	CALL	L2ESTIMATE
+	SUB		DistanceToTravel
+	JNEG	iamdone ;I need to continue realigning
+	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit and maybe reset odometry
+		
+BeginRealign:
+	;figure out how far to travel
+	OUT RESETPOS
+	LOAD 	Delta
+	STORE 	L2X
+	;Multiply Delta by 8
+	STORE 	m16sA
+	LOAD 	EIGHT
+	STORE 	m16sB
+	CALL	Mult16s
+	LOAD	mres16sL
+	
+	STORE L2X
+	
+	CALL L2Estimate
+	;Set desired travel distance to AC
+	STORE DistanceToTravel
+	;Turn Phi
+	LOAD Delta
+	JPOS Clockwise
+	LOAD DTheta	;CounterClockwise
+	ADDI -7;
+	STORE DTheta
+	CALL ControlMovement
+	RETI
+Clockwise: 
+	LOAD DTheta
+	ADDI 7
+	STORE DTheta
+	
+	CALL ControlMovement
+	RETI
+
+	
+	
+	
+	
+LastSonarReading: DW &H400
+Delta:		DW &H00
+Threshold: 	DW &H05
+Realigning: DW &B00		;1 if realigning, 0 if not
+DistanceToTravel: DW &H00
+
+SectionTwo:
+
+SectionThree:
+
+SectionFour:
+	
+	
+	
+	
+	
+	
+iamdone:	RETI   ; return from ISR
 	
 	
 ; Control code.  If called repeatedly, this code will attempt
