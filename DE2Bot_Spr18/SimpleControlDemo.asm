@@ -72,7 +72,7 @@ Main:
 	STORE  DVel        ; zero desired forward velocity
 	STORE  DTheta      ; desired heading = 0 degrees
 	; configure timer interrupts to enable the movement control code
-	LOADI  10          ; period = (10 ms * 10) = 0.1s, or 10Hz.
+	LOADI  15          ; period = (10 ms * 10) = 0.1s, or 10Hz.
 	OUT    CTIMER      ; turn on timer peripheral
 	SEI    &B0010      ; enable interrupts from source 2 (timer)
 	; at this point, timer interrupts will be firing at 10Hz, and
@@ -84,6 +84,13 @@ Main:
 	LOAD 	Mask5
 	OUT		SONAREN	; Enable sonars 0 and 5 (180 degrees apart)
 	
+	LOADI 	300
+	STORE	DVel
+	
+nothing:	CALL 	ControlMovement
+			JUMP 	nothing
+	
+
 
 
 ; As a quick demo of the movement control, the robot is 
@@ -100,45 +107,45 @@ Main:
 	; The robot should automatically start moving,
 	; trying to match these desired parameters.
 
-DistanceTest:
-	LOADI	200
-	STORE	DVel
-	;CALL	ControlMovement
-	
-	IN		DIST5
-	STORE	SonVal5
-	OUT 	SSEG1
-	
-	ADDI	&H7FFF
-	CALL	Neg
-	JZERO	DistanceTest	; Invalid value received
-	LOAD	SonVal5
-	
-	ADDI	-800
-	OUT		SSEG2
-	JNEG	DistanceTest
-	
-	; Stop robot and halt
-	LOAD	Zero
-	STORE	SONAREN
-	STORE	DVel
-	CALL	ControlMovement
-	JUMP	Forever
+;DistanceTest:
+;	LOADI	200
+;	STORE	DVel
+;	;CALL	ControlMovement
+;	
+;	IN		DIST5
+;	STORE	SonVal5
+;	OUT 	SSEG1
+;	
+;	ADDI	&H7FFF
+;	CALL	Neg
+;	JZERO	DistanceTest	; Invalid value received
+;	LOAD	SonVal5
+;	
+;	ADDI	-800
+;	OUT		SSEG2
+;	JNEG	DistanceTest
+;	
+;	; Stop robot and halt
+;	LOAD	Zero
+;	STORE	SONAREN
+;	STORE	DVel
+;	CALL	ControlMovement
+;	JUMP	Forever
 
 		
-Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
-	CALL   GetThetaErr ; get the heading error
-	CALL   Abs         ; absolute value
-	OUT    LCD         ; useful debug info
-	ADDI   -5          ; check if within 5 degrees of target
-	JPOS   Test1       ; if not, keep testing
+;Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
+;	CALL   GetThetaErr ; get the heading error
+;	CALL   Abs         ; absolute value
+;	OUT    LCD         ; useful debug info
+;	ADDI   -5          ; check if within 5 degrees of target
+;	JPOS   Test1       ; if not, keep testing
 	
 	; the robot is now within 5 degrees of 270
 	
-	LOAD   Mask5       ; defined below as 0b0100
-	OUT    SONAREN     ; enable sonar 2
-	LOAD   FMid       ; defined below as 100
-	STORE  DVel
+;	LOAD   Mask5       ; defined below as 0b0100
+;	OUT    SONAREN     ; enable sonar 2
+;	LOAD   FMid       ; defined below as 100
+;	STORE  DVel
 
 
 ;Test2:
@@ -155,17 +162,17 @@ Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
 ;
 ;	JUMP   Test2       ; still going
 
-Modified:
-	IN		DIST5
-	OUT 	SSEG1
-	ADDI	-915
-	
-	LOADI  0
-	STORE  DVel        ; turn in-place (zero velocity)
-	LOADI  270         ; 270 is 90 to the right
-	STORE  DTheta      ; desired heading
-	
-	JUMP Die
+;Modified:
+;	IN		DIST5
+;	OUT 	SSEG1
+;	ADDI	-915
+;	
+;	LOADI  0
+;	STORE  DVel        ; turn in-place (zero velocity)
+;	LOADI  270         ; 270 is 90 to the right
+;	STORE  DTheta      ; desired heading
+;	
+;	JUMP Die
 	
 
 
@@ -189,7 +196,135 @@ Forever:
 ; Timer ISR.  Currently just calls the movement control code.
 ; You could, however, do additional tasks here if desired.
 CTimer_ISR:
-	CALL   ControlMovement
+
+SectionOne:
+;Assuming that the sensor reading is short range
+	IN		DIST5
+	STORE	NewSonarReading
+	;LOAD Realigning
+	;JPOS Realign
+	;See if we need to wait
+	LOAD 	Wait
+	JZERO	Begin
+	
+	AND		ZERO
+	STORE  	Wait
+	JUMP	iamdone
+	
+	;If we don't need to wait
+Begin:
+	LOAD	NewSonarReading
+	SUB 	LastSonarReading
+	STORE 	Delta
+	JPOS 	FacingAway
+	JNEG 	FacingTowards
+	;JZERO Realign
+	JZERO 	iamdone
+
+FacingAway:
+	SUB Threshold
+	;JNEG BeginRealign
+	JNEG iamdone
+	;turn clockwise 1 degree
+	LOAD DTheta
+	ADDI -5
+	CALL Mod360
+	STORE DTheta
+	
+	LOAD 	ONE
+	STORE 	Wait
+	JUMP	iamdone
+	
+FacingTowards:
+	ADD 	Threshold
+	;JPOS BeginRealign
+	JPOS 	iamdone
+	;turn counterclockwise 1 degree
+	LOAD 	DTheta
+	ADDI 	5
+	CALL 	Mod360
+	STORE 	DTheta
+	
+	LOAD 	ONE
+	STORE 	Wait
+	JUMP 	iamdone
+	
+Realign:
+	;We are realigning. Check if we have traveled the correct distance
+	IN 		XPOS
+	STORE 	L2X
+	IN 		YPOS
+	STORE 	L2Y
+	CALL	L2ESTIMATE
+	SUB		DistanceToTravel
+	JNEG	iamdone ;I need to continue realigning
+	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit and maybe reset odometry
+		
+BeginRealign:
+	;TODO THIS IS A PLACE HOLDER
+	
+	;figure out how far to travel
+	OUT 	RESETPOS
+	LOAD 	Delta
+	STORE 	L2X
+	;Multiply Delta by 8
+	STORE 	m16sA
+	LOAD 	EIGHT
+	STORE 	m16sB
+	CALL	Mult16s
+	LOAD	mres16sL
+	
+	STORE L2X
+	
+	CALL L2Estimate
+	;Set desired travel distance to AC
+	STORE DistanceToTravel
+	;Turn Phi
+	LOAD Delta
+	JPOS Clockwise
+	LOAD DTheta	;CounterClockwise
+	ADDI -7;
+	STORE DTheta
+	CALL ControlMovement
+	RETI
+Clockwise: 
+	LOAD DTheta
+	ADDI 7
+	STORE DTheta
+	
+	;Store New Sensor reading
+iamdone:
+	LOAD	NewSonarReading
+	STORE 	LastSonarReading
+	LOAD 	NewSonarReading
+	OUT 	SSEG1
+	CALL 	ControlMovement
+	RETI
+
+	
+	
+	
+	
+LastSonarReading: DW &H0
+NewSonarReading:  DW 0
+Delta:		DW &H00
+Threshold: 	DW &H0A
+Realigning: DW &B00		;1 if realigning, 0 if not
+DistanceToTravel: DW &H00
+Wait:		DW 0
+
+
+SectionTwo:
+
+SectionThree:
+
+SectionFour:
+	
+	
+	
+	
+	
+	
 	RETI   ; return from ISR
 	
 	
