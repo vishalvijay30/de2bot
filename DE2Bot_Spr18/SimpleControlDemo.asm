@@ -72,7 +72,7 @@ Main:
 	STORE  DVel        ; zero desired forward velocity
 	STORE  DTheta      ; desired heading = 0 degrees
 	; configure timer interrupts to enable the movement control code
-	LOADI  10          ; period = (10 ms * 10) = 0.1s, or 10Hz.
+	LOADI  15          ; period = (10 ms * 10) = 0.1s, or 10Hz.
 	OUT    CTIMER      ; turn on timer peripheral
 	SEI    &B0010      ; enable interrupts from source 2 (timer)
 	; at this point, timer interrupts will be firing at 10Hz, and
@@ -83,6 +83,12 @@ Main:
 	; Enable sonar sensors
 	LOAD 	Mask5
 	OUT		SONAREN	; Enable sonars 0 and 5 (180 degrees apart)
+	
+	LOADI 	300
+	STORE	DVel
+	
+nothing:	CALL 	ControlMovement
+			JUMP 	nothing
 	
 
 
@@ -193,15 +199,27 @@ CTimer_ISR:
 
 SectionOne:
 ;Assuming that the sensor reading is short range
+	IN		DIST5
+	STORE	NewSonarReading
 	;LOAD Realigning
 	;JPOS Realign
-	IN DIST5
-	SUB LastSonarReading
-	STORE Delta
-	JPOS FacingAway
-	JNEG FacingTowards
+	;See if we need to wait
+	LOAD 	Wait
+	JZERO	Begin
+	
+	AND		ZERO
+	STORE  	Wait
+	JUMP	iamdone
+	
+	;If we don't need to wait
+Begin:
+	LOAD	NewSonarReading
+	SUB 	LastSonarReading
+	STORE 	Delta
+	JPOS 	FacingAway
+	JNEG 	FacingTowards
 	;JZERO Realign
-	JZERO iamdone
+	JZERO 	iamdone
 
 FacingAway:
 	SUB Threshold
@@ -209,27 +227,27 @@ FacingAway:
 	JNEG iamdone
 	;turn clockwise 1 degree
 	LOAD DTheta
-	ADDI 1
+	ADDI -5
 	CALL Mod360
 	STORE DTheta
 	
-	;Store New Sensor reading
-	CALL ControlMovement
-	RETI
+	LOAD 	ONE
+	STORE 	Wait
+	JUMP	iamdone
 	
 FacingTowards:
-	ADD Threshold
+	ADD 	Threshold
 	;JPOS BeginRealign
-	JPOS iamdone
+	JPOS 	iamdone
 	;turn counterclockwise 1 degree
-	LOAD DTheta
-	ADDI -1
-	CALL Mod360
-	STORE DTheta
+	LOAD 	DTheta
+	ADDI 	5
+	CALL 	Mod360
+	STORE 	DTheta
 	
-	;Store New Sensor reading
-	CALL ControlMovement
-	RETI
+	LOAD 	ONE
+	STORE 	Wait
+	JUMP 	iamdone
 	
 Realign:
 	;We are realigning. Check if we have traveled the correct distance
@@ -276,20 +294,25 @@ Clockwise:
 	
 	;Store New Sensor reading
 iamdone:
-	IN DIST5
-	STORE LastSonarReading
-	CALL ControlMovement
+	LOAD	NewSonarReading
+	STORE 	LastSonarReading
+	LOAD 	NewSonarReading
+	OUT 	SSEG1
+	CALL 	ControlMovement
 	RETI
 
 	
 	
 	
 	
-LastSonarReading: DW &H400
+LastSonarReading: DW &H0
+NewSonarReading:  DW 0
 Delta:		DW &H00
-Threshold: 	DW &H05
+Threshold: 	DW &H0A
 Realigning: DW &B00		;1 if realigning, 0 if not
 DistanceToTravel: DW &H00
+Wait:		DW 0
+
 
 SectionTwo:
 
