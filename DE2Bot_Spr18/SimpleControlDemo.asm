@@ -190,39 +190,44 @@ Forever:
 ; Timer ISR.  Currently just calls the movement control code.
 ; You could, however, do additional tasks here if desired.
 CTimer_ISR:
-	;CALL   ControlMovement
+
 SectionOne:
 ;Assuming that the sensor reading is short range
-	LOAD Realigning
-	JPOS Realign
+	;LOAD Realigning
+	;JPOS Realign
 	IN DIST5
 	SUB LastSonarReading
 	STORE Delta
 	JPOS FacingAway
 	JNEG FacingTowards
-	JZERO Realign
+	;JZERO Realign
+	JZERO iamdone
 
 FacingAway:
 	SUB Threshold
-	JNEG BeginRealign
+	;JNEG BeginRealign
+	JNEG iamdone
 	;turn clockwise 1 degree
 	LOAD DTheta
 	ADDI 1
 	CALL Mod360
 	STORE DTheta
 	
+	;Store New Sensor reading
 	CALL ControlMovement
 	RETI
 	
 FacingTowards:
 	ADD Threshold
-	JPOS BeginRealign
+	;JPOS BeginRealign
+	JPOS iamdone
 	;turn counterclockwise 1 degree
 	LOAD DTheta
 	ADDI -1
 	CALL Mod360
 	STORE DTheta
 	
+	;Store New Sensor reading
 	CALL ControlMovement
 	RETI
 	
@@ -238,8 +243,10 @@ Realign:
 	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit and maybe reset odometry
 		
 BeginRealign:
+	;TODO THIS IS A PLACE HOLDER
+	
 	;figure out how far to travel
-	OUT RESETPOS
+	OUT 	RESETPOS
 	LOAD 	Delta
 	STORE 	L2X
 	;Multiply Delta by 8
@@ -267,6 +274,10 @@ Clockwise:
 	ADDI 7
 	STORE DTheta
 	
+	;Store New Sensor reading
+iamdone:
+	IN DIST5
+	STORE LastSonarReading
 	CALL ControlMovement
 	RETI
 
@@ -291,7 +302,7 @@ SectionFour:
 	
 	
 	
-iamdone:	RETI   ; return from ISR
+	RETI   ; return from ISR
 	
 	
 ; Control code.  If called repeatedly, this code will attempt
