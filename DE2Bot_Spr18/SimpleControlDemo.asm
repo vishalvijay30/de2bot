@@ -202,6 +202,13 @@ SectionOne:
 	IN		DIST5
 	STORE	NewSonarReading
 	
+	;See if we sensor is longRange or already in part 3
+	SUB		LongRangeS1
+	JPOS	Part3
+	LOAD 	Part
+	ADDI	-3
+	JZERO	Part3
+	
 	;see if we are currently realigning
 	LOAD Realigning
 	JPOS Realign
@@ -323,6 +330,13 @@ iamdone:
 	OUT 	SSEG1
 	CALL 	ControlMovement
 	RETI
+	
+Part3:
+	LOAD 	ZERO
+	STORE	DVel
+	STORE	DTheta
+	LOAD	THREE
+	STORE	Part
 
 	
 	
@@ -336,6 +350,8 @@ Realigning: 		DW &B00		;1 if realigning, 0 if not
 DistanceToTravel: 	DW &H00
 Wait:				DW 0		;1 if waiting, 0 if not
 DesiredDisFromWall:	DW &H450
+LongRangeS1:		DW &H800
+Part:				DW 0
 
 
 SectionTwo:
