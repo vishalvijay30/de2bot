@@ -72,7 +72,7 @@ Main:
 	STORE  DVel        ; zero desired forward velocity
 	STORE  DTheta      ; desired heading = 0 degrees
 	; configure timer interrupts to enable the movement control code
-	LOADI  15          ; period = (10 ms * 10) = 0.1s, or 10Hz.
+	LOADI  10          ; period = (10 ms * 10) = 0.1s, or 10Hz.
 	OUT    CTIMER      ; turn on timer peripheral
 	SEI    &B0010      ; enable interrupts from source 2 (timer)
 	; at this point, timer interrupts will be firing at 10Hz, and
@@ -81,16 +81,9 @@ Main:
 	; execute CLI &B0010 to disable the timer interrupt.
 	
 	; Enable sonar sensors
-	LOAD 	Mask5
+	LOAD 	Mask50
 	OUT		SONAREN	; Enable sonars 0 and 5 (180 degrees apart)
 	
-	LOADI 	300
-	STORE	DVel
-	
-nothing:	CALL 	ControlMovement
-			JUMP 	nothing
-	
-
 
 
 ; As a quick demo of the movement control, the robot is 
@@ -107,45 +100,87 @@ nothing:	CALL 	ControlMovement
 	; The robot should automatically start moving,
 	; trying to match these desired parameters.
 
-;DistanceTest:
-;	LOADI	200
-;	STORE	DVel
-;	;CALL	ControlMovement
-;	
-;	IN		DIST5
-;	STORE	SonVal5
-;	OUT 	SSEG1
-;	
-;	ADDI	&H7FFF
-;	CALL	Neg
-;	JZERO	DistanceTest	; Invalid value received
-;	LOAD	SonVal5
-;	
-;	ADDI	-800
-;	OUT		SSEG2
-;	JNEG	DistanceTest
-;	
-;	; Stop robot and halt
-;	LOAD	Zero
-;	STORE	SONAREN
-;	STORE	DVel
-;	CALL	ControlMovement
-;	JUMP	Forever
+Section3:
+	LOADI	300
+	STORE	DVel
+	
+	; TEMP
+	LOADI	-500
+	CALL	MoveDistance
+	JUMP	Die
+	
+	; Turn 90 degrees to right
+	LOADI	-90
+	CALL	Turn
+	; Clear SSEG2
+	LOAD	DVel
+	OUT		SSEG2
+	; Move forward 4 feet
+	LOAD	Ft4
+	CALL	MoveDistance
+Section3_invalid:	
+	IN		DIST5
+	STORE	SonVal5
+	IN		DIST0
+	STORE	SonVal0
+	OUT 	SSEG1
+	
+	LOAD	SonVal0
+	ADD		Sect3WallDistance
+	JPOS	Section3_far
+	JNEG	Section3_close
+	JZERO	Section3_cont
+Section3_far:
+	LOADI	2
+	CALL	Turn
+	LOAD ReevalDistance
+	CALL	MoveDistance
+	JUMP	Section3_cont
+Section3_close:
+	LOADI	-2
+	CALL	Turn
+	LOAD ReevalDistance
+	CALL	MoveDistance
+	JUMP	Section3_cont
+Section3_cont:
+	LOAD	SonVal5
+	ADD		InvalidDistance
+	JPOS	Section3_invalid	; Invalid value received
+
+	LOAD	SonVal5
+	ADD		TooFarAwayDistance
+	JNEG	Section3_invalid
+	
+	; Move forward a half meter before the turn
+	LOAD	HalfMeter
+	CALL	MoveDistance
+	; Turn 90 to the right again to complete this section
+	LOADI	-90
+	CALL	Turn
+	
+	; Stop robot and halt
+	;LOAD	Zero
+	;STORE	SONAREN
+	;STORE	DVel
+	;LOAD	Dead
+	;STORE	SSEG2
+	;JUMP	Forever
+	JUMP	Die
 
 		
-;Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
-;	CALL   GetThetaErr ; get the heading error
-;	CALL   Abs         ; absolute value
-;	OUT    LCD         ; useful debug info
-;	ADDI   -5          ; check if within 5 degrees of target
-;	JPOS   Test1       ; if not, keep testing
+Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
+	CALL   GetThetaErr ; get the heading error
+	CALL   Abs         ; absolute value
+	OUT    LCD         ; useful debug info
+	ADDI   -5          ; check if within 5 degrees of target
+	JPOS   Test1       ; if not, keep testing
 	
 	; the robot is now within 5 degrees of 270
 	
-;	LOAD   Mask5       ; defined below as 0b0100
-;	OUT    SONAREN     ; enable sonar 2
-;	LOAD   FMid       ; defined below as 100
-;	STORE  DVel
+	LOAD   Mask5       ; defined below as 0b0100
+	OUT    SONAREN     ; enable sonar 2
+	LOAD   FMid       ; defined below as 100
+	STORE  DVel
 
 
 ;Test2:
@@ -162,17 +197,17 @@ nothing:	CALL 	ControlMovement
 ;
 ;	JUMP   Test2       ; still going
 
-;Modified:
-;	IN		DIST5
-;	OUT 	SSEG1
-;	ADDI	-915
-;	
-;	LOADI  0
-;	STORE  DVel        ; turn in-place (zero velocity)
-;	LOADI  270         ; 270 is 90 to the right
-;	STORE  DTheta      ; desired heading
-;	
-;	JUMP Die
+Modified:
+	IN		DIST5
+	OUT 	SSEG1
+	ADDI	-915
+	
+	LOADI  0
+	STORE  DVel        ; turn in-place (zero velocity)
+	LOADI  270         ; 270 is 90 to the right
+	STORE  DTheta      ; desired heading
+	
+	JUMP Die
 	
 
 
@@ -196,135 +231,7 @@ Forever:
 ; Timer ISR.  Currently just calls the movement control code.
 ; You could, however, do additional tasks here if desired.
 CTimer_ISR:
-
-SectionOne:
-;Assuming that the sensor reading is short range
-	IN		DIST5
-	STORE	NewSonarReading
-	;LOAD Realigning
-	;JPOS Realign
-	;See if we need to wait
-	LOAD 	Wait
-	JZERO	Begin
-	
-	AND		ZERO
-	STORE  	Wait
-	JUMP	iamdone
-	
-	;If we don't need to wait
-Begin:
-	LOAD	NewSonarReading
-	SUB 	LastSonarReading
-	STORE 	Delta
-	JPOS 	FacingAway
-	JNEG 	FacingTowards
-	;JZERO Realign
-	JZERO 	iamdone
-
-FacingAway:
-	SUB Threshold
-	;JNEG BeginRealign
-	JNEG iamdone
-	;turn clockwise 1 degree
-	LOAD DTheta
-	ADDI -5
-	CALL Mod360
-	STORE DTheta
-	
-	LOAD 	ONE
-	STORE 	Wait
-	JUMP	iamdone
-	
-FacingTowards:
-	ADD 	Threshold
-	;JPOS BeginRealign
-	JPOS 	iamdone
-	;turn counterclockwise 1 degree
-	LOAD 	DTheta
-	ADDI 	5
-	CALL 	Mod360
-	STORE 	DTheta
-	
-	LOAD 	ONE
-	STORE 	Wait
-	JUMP 	iamdone
-	
-Realign:
-	;We are realigning. Check if we have traveled the correct distance
-	IN 		XPOS
-	STORE 	L2X
-	IN 		YPOS
-	STORE 	L2Y
-	CALL	L2ESTIMATE
-	SUB		DistanceToTravel
-	JNEG	iamdone ;I need to continue realigning
-	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit and maybe reset odometry
-		
-BeginRealign:
-	;TODO THIS IS A PLACE HOLDER
-	
-	;figure out how far to travel
-	OUT 	RESETPOS
-	LOAD 	Delta
-	STORE 	L2X
-	;Multiply Delta by 8
-	STORE 	m16sA
-	LOAD 	EIGHT
-	STORE 	m16sB
-	CALL	Mult16s
-	LOAD	mres16sL
-	
-	STORE L2X
-	
-	CALL L2Estimate
-	;Set desired travel distance to AC
-	STORE DistanceToTravel
-	;Turn Phi
-	LOAD Delta
-	JPOS Clockwise
-	LOAD DTheta	;CounterClockwise
-	ADDI -7;
-	STORE DTheta
-	CALL ControlMovement
-	RETI
-Clockwise: 
-	LOAD DTheta
-	ADDI 7
-	STORE DTheta
-	
-	;Store New Sensor reading
-iamdone:
-	LOAD	NewSonarReading
-	STORE 	LastSonarReading
-	LOAD 	NewSonarReading
-	OUT 	SSEG1
-	CALL 	ControlMovement
-	RETI
-
-	
-	
-	
-	
-LastSonarReading: DW &H0
-NewSonarReading:  DW 0
-Delta:		DW &H00
-Threshold: 	DW &H0A
-Realigning: DW &B00		;1 if realigning, 0 if not
-DistanceToTravel: DW &H00
-Wait:		DW 0
-
-
-SectionTwo:
-
-SectionThree:
-
-SectionFour:
-	
-	
-	
-	
-	
-	
+	CALL   ControlMovement
 	RETI   ; return from ISR
 	
 	
@@ -443,6 +350,84 @@ M360N:
 	ADDI   360
 	JNEG   M360N
 	RETURN
+	
+Turn:
+	ADD		DTheta
+	CALL	Mod360
+	STORE	DTheta
+	
+	LOAD	DVel
+	STORE	PVel
+	LOADI	50		; Set turning speed to 50
+	STORE	DVel
+Turn_loop:
+	CALL   GetThetaErr	; get the heading error
+	CALL   Abs			; absolute value
+	OUT	   SSEG2
+	ADDI   -1			; check if within x degrees of target
+	JPOS   Turn_loop	; if not, keep checking
+	; Restore previous movement speed
+	LOAD	PVel
+	STORE	DVel
+	RETURN
+	
+; TODO: WE NEED A MOVEDISTANCE_FORWARD AND BACKWARD
+MoveDistance:
+	STORE	MoveDistance_val
+	JPOS	MoveDistance_loop
+	; For negative distances move backwards
+	CALL NegateSpeed
+MoveDistance_loop:
+	IN		YPOS
+	ADD		MoveDistance_val
+	JPOS	MoveDistance_loop
+	
+	; Set speed back
+	LOAD	MoveDistance_val
+	JPOS	MD_ret
+	CALL	NegateSpeed
+MD_ret:
+	RETURN
+	MoveDistance_val: DW 0
+	
+NegateSpeed:
+	LOAD DVel
+	CALL Neg
+	STORE DVel
+	RETURN
+	
+; Measures from outside of loop (Sensor 0)
+CorrectDistance:
+	STORE	CD_buffer	; Desired distance to wall (should be negative)
+	LOAD	DVel
+	STORE	PVel
+	LOADI	50	; Slow movement for measuring at
+	STORE	DVel
+	
+	IN		DIST0
+	STORE	SonVal0
+	OUT 	SSEG1
+	
+	ADD		CD_buffer
+	CALL	Abs
+	ADDI	50		; 5 cm threshold
+	JPOS	CD_cont	; Within threshold
+	LOAD	SonVal0
+	ADD		CD_buffer
+	;JPOS	CD_far
+	;JNEG	CD_close
+CD_far:
+	CALL MoveDistance
+CD_close:
+CD_cont:
+	; Turn back
+	LOADI 	-90
+	CALL	Turn
+
+	LOAD PVel
+	STORE DVel
+	RETURN
+	CD_buffer: DW 0
 
 ;*******************************************************************************
 ; Abs: 2's complement absolute value
@@ -878,9 +863,10 @@ I2CError:
 ;***************************************************************
 Temp:     DW 0 ; "Temp" is not a great name, but can be useful
 
-SonVal0:  DW 0
-SonVal5:  DW 0
+SonVal0:	DW 0
+SonVal5:	DW 0
 ExceedCount: DW 0
+PVel:		DW 0 ; Previous velocity
 
 ;***************************************************************
 ;* Constants
@@ -898,6 +884,10 @@ Seven:    DW 7
 Eight:    DW 8
 Nine:     DW 9
 Ten:      DW 10
+InvalidDistance: 	DW -4096
+TooFarAwayDistance:	DW -1536 ; -0x500
+Sect3WallDistance:	DW -768	; -0x300
+ReevalDistance:		DW	200	; ~200mm
 
 ; Some bit masks.
 ; Masks of multiple bits can be constructed by ORing these
@@ -908,6 +898,7 @@ Mask2:    DW &B00000100
 Mask3:    DW &B00001000
 Mask4:    DW &B00010000
 Mask5:    DW &B00100000
+Mask50:	  DW &B00100001 ; Mask0 OR Mask5
 Mask6:    DW &B01000000
 Mask7:    DW &B10000000
 LowByte:  DW &HFF      ; binary 00000000 1111111
