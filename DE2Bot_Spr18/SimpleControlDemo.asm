@@ -201,8 +201,11 @@ SectionOne:
 ;Assuming that the sensor reading is short range
 	IN		DIST5
 	STORE	NewSonarReading
-	;LOAD Realigning
-	;JPOS Realign
+	
+	;see if we are currently realigning
+	LOAD Realigning
+	JPOS Realign
+	
 	;See if we need to wait
 	LOAD 	Wait
 	JZERO	Begin
@@ -222,9 +225,9 @@ Begin:
 	JZERO 	iamdone
 
 FacingAway:
-	SUB Threshold
-	;JNEG BeginRealign
-	JNEG iamdone
+	SUB 	Threshold
+	JNEG 	BeginRealign	;if we are heading straight, see if we need to realign
+	
 	;turn clockwise 1 degree
 	LOAD DTheta
 	ADDI -5
@@ -237,8 +240,8 @@ FacingAway:
 	
 FacingTowards:
 	ADD 	Threshold
-	;JPOS BeginRealign
-	JPOS 	iamdone
+	JPOS 	BeginRealign	;if we are heading straight, see if we need to realign
+	
 	;turn counterclockwise 1 degree
 	LOAD 	DTheta
 	ADDI 	5
@@ -259,15 +262,34 @@ Realign:
 	SUB		DistanceToTravel
 	JNEG	iamdone ;I need to continue realigning
 	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit and maybe reset odometry
+	LOAD 	ZERO
+	STORE	DTheta
+	STORE	Realigning
 		
-BeginRealign:
-	;TODO THIS IS A PLACE HOLDER
-	
+BeginRealign:	
+	;figure out if we need to change
+	IN		DIST5
+	SUB		DesiredDisFromWall
+	ADDI	-10
+	JPOS	SecondPart
+	ADDI	20
+	JNEG	SecondPart
+	JZERO	iamdone		;We are in the desired range (440 - 460 H)
 	;figure out how far to travel
+SecondPart:
+	;Reset x,y,Theta to 0
 	OUT 	RESETPOS
-	LOAD 	Delta
-	STORE 	L2X
-	;Multiply Delta by 8
+	AND		ZERO
+	STORE	DTheta
+	
+	;find distance to move
+	LOAD 	NewSonarReading
+	SUB		DesiredDisFromWall		;if neg, too close to wall
+	
+	
+	
+	STORE 	L2Y
+	;Multiply by 8
 	STORE 	m16sA
 	LOAD 	EIGHT
 	STORE 	m16sB
@@ -279,20 +301,21 @@ BeginRealign:
 	CALL L2Estimate
 	;Set desired travel distance to AC
 	STORE DistanceToTravel
-	;Turn Phi
-	LOAD Delta
-	JPOS Clockwise
-	LOAD DTheta	;CounterClockwise
-	ADDI -7;
-	STORE DTheta
-	CALL ControlMovement
-	RETI
-Clockwise: 
-	LOAD DTheta
-	ADDI 7
-	STORE DTheta
+	;Figure out direction to turn
+	LOAD		NewSonarReading
+	SUB			DesiredDisFromWall	;if neg, too close to wall
+	JNEG		TurnCounterClockwise
+	;Turn
+TurnClockwise:
+	LOAD 	ZERO
+	ADDI	-7
+	STORE 	DTheta
 	
-	;Store New Sensor reading
+	JUMP	iamdone
+TurnCounterClockwise:
+	LOAD 	SEVEN
+	STORE 	DTheta
+	
 iamdone:
 	LOAD	NewSonarReading
 	STORE 	LastSonarReading
@@ -305,13 +328,14 @@ iamdone:
 	
 	
 	
-LastSonarReading: DW &H0
-NewSonarReading:  DW 0
-Delta:		DW &H00
-Threshold: 	DW &H0A
-Realigning: DW &B00		;1 if realigning, 0 if not
-DistanceToTravel: DW &H00
-Wait:		DW 0
+LastSonarReading: 	DW &H0
+NewSonarReading:  	DW 0
+Delta:				DW &H00
+Threshold: 			DW &H0A
+Realigning: 		DW &B00		;1 if realigning, 0 if not
+DistanceToTravel: 	DW &H00
+Wait:				DW 0		;1 if waiting, 0 if not
+DesiredDisFromWall:	DW &H450
 
 
 SectionTwo:
