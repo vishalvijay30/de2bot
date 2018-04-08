@@ -59,6 +59,10 @@ WaitForUser:
 	JPOS   WaitForUser ; not ready (KEYs are active-low, hence JPOS)
 	LOAD   Zero
 	OUT    XLEDS       ; clear LEDs once ready to continue
+	STORE	Part		;Reset internal variables
+	STORE	Realigning
+	STORE	TimeOutOfRange
+	STORE 	State
 
 ;***************************************************************
 ;* Main code
@@ -72,7 +76,7 @@ Main:
 	STORE  DVel        ; zero desired forward velocity
 	STORE  DTheta      ; desired heading = 0 degrees
 	; configure timer interrupts to enable the movement control code
-	LOADI  15          ; period = (10 ms * 10) = 0.1s, or 10Hz.
+	LOAD   15          ; period = (10 ms * 10) = 0.1s, or 10Hz.
 	OUT    CTIMER      ; turn on timer peripheral
 	SEI    &B0010      ; enable interrupts from source 2 (timer)
 	; at this point, timer interrupts will be firing at 10Hz, and
@@ -87,8 +91,34 @@ Main:
 	LOADI 	300
 	STORE	DVel
 	
-nothing:	CALL 	ControlMovement
-			JUMP 	nothing
+State0:
+	AND		ZERO
+	ADDI	500
+	STORE	DistanceToTravel
+	OUT		RESETPOS
+CheckDistance:
+	;Check if we have traveled the correct distance
+	IN 		XPOS
+	STORE 	L2X
+	IN 		YPOS
+	STORE 	L2Y
+	CALL	L2ESTIMATE
+	SUB		DistanceToTravel
+	JNEG	CheckDistance ;I need to continue moving
+	
+	LOAD	ONE
+	STORE	State
+State1:
+	LOAD	State
+	ADDI	-2
+	JZERO	State2
+			
+State2:
+	
+	
+State3:
+	
+State4:
 	
 
 
@@ -201,17 +231,45 @@ SectionOne:
 ;Assuming that the sensor reading is short range
 	IN		DIST5
 	STORE	NewSonarReading
+	OUT		SSEG1
 	
-	;See if we sensor is longRange or already in part 3
-	SUB		LongRangeS1
-	JPOS	Part3
-	LOAD 	Part
-	ADDI	-3
-	JZERO	Part3
+	LOAD	State
+	ADDI	-1
+	JZERO	State1
+	RETI
 	
+State1:
 	;see if we are currently realigning
 	LOAD Realigning
 	JPOS Realign
+	
+	;See if the sensor is longRange or already in part 3
+	LOAD	NewSonarReading
+	SUB		LongRangeS1
+	JPOS	AddOneToRangeCounter
+	
+	;Reset TimeOutOfRange
+	AND		ZERO
+	STORE	TimeOutOfRange
+	JUMP	BadName
+	
+AddOneToRangeCounter:
+	LOAD	TimeOutOfRange
+	ADDI	1		
+	STORE	TimeOutOfRange
+	
+BadName:
+	LOAD	TimeOutOfRange
+	ADDI	-5
+	JPOS	Part3
+	
+	LOAD 	Part
+	ADDI	-3
+	JZERO	Part3Continue
+	
+	ADDI	-1
+	JZERO	Part4
+	
 	
 	;See if we need to wait
 	LOAD 	Wait
@@ -236,10 +294,10 @@ FacingAway:
 	JNEG 	BeginRealign	;if we are heading straight, see if we need to realign
 	
 	;turn clockwise 1 degree
-	LOAD DTheta
-	ADDI -5
-	CALL Mod360
-	STORE DTheta
+	LOAD 	DTheta
+	ADDI 	-5
+	CALL 	Mod360
+	STORE 	DTheta
 	
 	LOAD 	ONE
 	STORE 	Wait
@@ -326,17 +384,52 @@ TurnCounterClockwise:
 iamdone:
 	LOAD	NewSonarReading
 	STORE 	LastSonarReading
-	LOAD 	NewSonarReading
-	OUT 	SSEG1
 	CALL 	ControlMovement
 	RETI
 	
-Part3:
+Part3:		;Move forward x distance
+	IN		DIST5
+	OUT 	SSEG1
 	LOAD 	ZERO
-	STORE	DVel
 	STORE	DTheta
+	ADDI	200
+	STORE	DVel
 	LOAD	THREE
 	STORE	Part
+	;Store Distance to travel
+	AND		ZERO
+	ADDI	920					;  x
+	STORE	DistanceToTravel
+Part3Continue:
+	IN		DIST5
+	OUT 	SSEG1
+	
+	;Check if we have traveled the correct distance
+	IN 		XPOS
+	STORE 	L2X
+	IN 		YPOS
+	STORE 	L2Y
+	CALL	L2ESTIMATE
+	SUB		DistanceToTravel
+	JNEG	iamdone ;I need to continue moving
+	
+	;We are done moving
+	LOAD 	FOUR
+	STORE	Part
+	LOAD	ZERO
+	STORE 	DVel
+	CALL	ControlMovement
+	RETI
+	
+Part4:
+	LOAD 	TWO
+	STORE	State
+	LOAD	ZERO
+	STORE	Part
+	OUT		RESETPOS
+		
+	CALL	ControlMovement
+	RETI
 
 	
 	
@@ -347,14 +440,13 @@ NewSonarReading:  	DW 0
 Delta:				DW &H00
 Threshold: 			DW &H0A
 Realigning: 		DW &B00		;1 if realigning, 0 if not
-DistanceToTravel: 	DW &H00
+DistanceToTravel: 	DW &H1F4
 Wait:				DW 0		;1 if waiting, 0 if not
 DesiredDisFromWall:	DW &H450
 LongRangeS1:		DW &H800
 Part:				DW 0
-
-
-SectionTwo:
+TimeOutOfRange:		DW 0
+State:				DW 0
 
 SectionThree:
 
@@ -921,6 +1013,7 @@ Temp:     DW 0 ; "Temp" is not a great name, but can be useful
 SonVal0:  DW 0
 SonVal5:  DW 0
 ExceedCount: DW 0
+Period:	  DW 0
 
 ;***************************************************************
 ;* Constants

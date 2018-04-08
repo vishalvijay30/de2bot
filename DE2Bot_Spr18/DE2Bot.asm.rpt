@@ -1,5 +1,5 @@
 Assembler report for DE2Bot
-Thu Apr 05 20:31:14 2018
+Sun Apr 08 17:05:25 2018
 Quartus II Version 9.1 Build 350 03/24/2010 Service Pack 2 SJ Full Version
 
 
@@ -38,7 +38,7 @@ applicable agreement for further details.
 +---------------------------------------------------------------+
 ; Assembler Summary                                             ;
 +-----------------------+---------------------------------------+
-; Assembler Status      ; Successful - Thu Apr 05 20:31:14 2018 ;
+; Assembler Status      ; Successful - Sun Apr 08 17:05:25 2018 ;
 ; Revision Name         ; DE2Bot                                ;
 ; Top-level Entity Name ; DE2bot                                ;
 ; Family                ; Cyclone II                            ;
@@ -95,7 +95,7 @@ applicable agreement for further details.
 +----------------+-------------------------------------------------------------+
 ; Device         ; EP2C35F672C6                                                ;
 ; JTAG usercode  ; 0xFFFFFFFF                                                  ;
-; Checksum       ; 0x007993DD                                                  ;
+; Checksum       ; 0x0079ED4B                                                  ;
 +----------------+-------------------------------------------------------------+
 
 
@@ -106,7 +106,7 @@ applicable agreement for further details.
 +--------------------+---------------------------------------------------------+
 ; Device             ; EPCS16                                                  ;
 ; JTAG usercode      ; 0x00000000                                              ;
-; Checksum           ; 0x1BECD3E5                                              ;
+; Checksum           ; 0x1BEBFEA4                                              ;
 ; Compression Ratio  ; 2                                                       ;
 +--------------------+---------------------------------------------------------+
 
@@ -117,13 +117,13 @@ applicable agreement for further details.
 Info: *******************************************************************
 Info: Running Quartus II Assembler
     Info: Version 9.1 Build 350 03/24/2010 Service Pack 2 SJ Full Version
-    Info: Processing started: Thu Apr 05 20:31:13 2018
+    Info: Processing started: Sun Apr 08 17:05:23 2018
 Info: Command: quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
 Info: Writing out detailed assembly data for power analysis
 Info: Assembler is generating device programming files
 Info: Quartus II Assembler was successful. 0 errors, 0 warnings
-    Info: Peak virtual memory: 291 megabytes
-    Info: Processing ended: Thu Apr 05 20:31:15 2018
+    Info: Peak virtual memory: 292 megabytes
+    Info: Processing ended: Sun Apr 08 17:05:25 2018
     Info: Elapsed time: 00:00:02
     Info: Total CPU time (on all processors): 00:00:02
 
