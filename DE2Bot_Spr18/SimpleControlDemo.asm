@@ -121,6 +121,10 @@ Section3_invalid:
 	SUB		InvalidDistance
 	JPOS	Section3_invalid	; Invalid value received
 	
+	LOAD	SonVal5
+	SUB		TooFarAwayDistance
+	JPOS	Section3_cont	; Haven't reached end of obstacle yet
+	
 	LOAD	SonVal0
 	SUB		SonVal5
 	STORE	WallDiff
@@ -140,7 +144,7 @@ Section3_far:
 	CALL	MoveDistance
 	LOADI	-45
 	CALL	Turn
-	JUMP	Section3_cont
+	JUMP	Section3_invalid
 Section3_close:
 	LOADI	-45
 	CALL	Turn
@@ -148,12 +152,8 @@ Section3_close:
 	CALL	MoveDistance
 	LOADI	45
 	CALL	Turn
-	JUMP	Section3_cont
+	JUMP	Section3_invalid
 Section3_cont:
-	LOAD	SonVal5
-	SUB		TooFarAwayDistance
-	JNEG	Section3_invalid	; Haven't reached end of obstacle yet
-	
 	; Move forward a half meter before the turn
 	LOAD	HalfMeter
 	CALL	MoveDistance

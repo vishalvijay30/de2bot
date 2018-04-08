@@ -68,33 +68,33 @@ CONTENT
            037 : 0A07;  -- 	LOAD	SonVal5
            038 : 2217;  -- 	SUB		InvalidDistance
            039 : 3832;  -- 	JPOS	Section3_invalid	; Invalid value received
-           03A : 0A06;  -- 	LOAD	SonVal0
-           03B : 2207;  -- 	SUB		SonVal5
-           03C : 120A;  -- 	STORE	WallDiff
-           03D : 0A0A;  -- 	LOAD	WallDiff
-           03E : 1F6A;  -- 	ADD		-150
-           03F : 3844;  -- 	JPOS	Section3_far
+           03A : 0A07;  -- 	LOAD	SonVal5
+           03B : 2218;  -- 	SUB		TooFarAwayDistance
+           03C : 3855;  -- 	JPOS	Section3_cont	; Haven't reached end of obstacle yet
+           03D : 0A06;  -- 	LOAD	SonVal0
+           03E : 2207;  -- 	SUB		SonVal5
+           03F : 120A;  -- 	STORE	WallDiff
            040 : 0A0A;  -- 	LOAD	WallDiff
-           041 : 1896;  -- 	ADD		150
-           042 : 304B;  -- 	JNEG	Section3_close
-           043 : 2852;  -- 	JUMP	Section3_cont
-           044 : B82D;  -- 	LOADI	45
-           045 : 805A;  -- 	CALL	Turn
-           046 : 0A1A;  -- 	LOAD	ReevalDistance
-           047 : 8069;  -- 	CALL	MoveDistance
-           048 : BFD3;  -- 	LOADI	-45
-           049 : 805A;  -- 	CALL	Turn
-           04A : 2852;  -- 	JUMP	Section3_cont
+           041 : 1F6A;  -- 	ADD		-150
+           042 : 3847;  -- 	JPOS	Section3_far
+           043 : 0A0A;  -- 	LOAD	WallDiff
+           044 : 1896;  -- 	ADD		150
+           045 : 304E;  -- 	JNEG	Section3_close
+           046 : 2855;  -- 	JUMP	Section3_cont
+           047 : B82D;  -- 	LOADI	45
+           048 : 805A;  -- 	CALL	Turn
+           049 : 0A1A;  -- 	LOAD	ReevalDistance
+           04A : 8069;  -- 	CALL	MoveDistance
            04B : BFD3;  -- 	LOADI	-45
            04C : 805A;  -- 	CALL	Turn
-           04D : 0A1A;  -- 	LOAD	ReevalDistance
-           04E : 8069;  -- 	CALL	MoveDistance
-           04F : B82D;  -- 	LOADI	45
-           050 : 805A;  -- 	CALL	Turn
-           051 : 2852;  -- 	JUMP	Section3_cont
-           052 : 0A07;  -- 	LOAD	SonVal5
-           053 : 2218;  -- 	SUB		TooFarAwayDistance
-           054 : 3032;  -- 	JNEG	Section3_invalid	; Haven't reached end of obstacle yet
+           04D : 2832;  -- 	JUMP	Section3_invalid
+           04E : BFD3;  -- 	LOADI	-45
+           04F : 805A;  -- 	CALL	Turn
+           050 : 0A1A;  -- 	LOAD	ReevalDistance
+           051 : 8069;  -- 	CALL	MoveDistance
+           052 : B82D;  -- 	LOADI	45
+           053 : 805A;  -- 	CALL	Turn
+           054 : 2832;  -- 	JUMP	Section3_invalid
            055 : 0A27;  -- 	LOAD	HalfMeter
            056 : 8069;  -- 	CALL	MoveDistance
            057 : BFA6;  -- 	LOADI	-90
