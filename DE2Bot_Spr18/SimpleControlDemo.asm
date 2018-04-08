@@ -101,29 +101,48 @@ Main:
 	; trying to match these desired parameters.
 
 Section3:
-	LOADI	300
+	LOADI	250
 	STORE	DVel
 	
-	; TEMP!
-	CALL	NegateSpeed
-	LOADI	500
+	; TEST
+	; TEST
+	LOAD	HalfMeter
 	CALL	MoveDistance
-	CALL	NegateSpeed
-	
-	LOADI	90
+	LOADI	-90
 	CALL	Turn
-	
-	LOADI	500
+	LOAD	HalfMeter
 	CALL	MoveDistance
-	JUMP	Die
-	;------------------------------------------------
+	LOADI	-90
+	CALL	Turn
+	LOAD	HalfMeter
+	CALL	MoveDistance
+	LOADI	-90
+	CALL	Turn
+	LOAD	HalfMeter
+	CALL	MoveDistance
+	LOADI	-90
+	CALL	Turn
+	JUMP Die
+	; -----------------------------------------
+	
+	LOAD	HalfMeter
+	CALL	MoveDistance
+	LOAD	-90
+	CALL	Turn
+	LOAD	HalfMeter
+	CALL	MoveDistance
+	LOAD	-90
+	CALL	Turn
+	LOAD	HalfMeter
+	CALL	MoveDistance
+	LOAD	-90
+	CALL	Turn
+	JUMP Die
+	; -----------------------------------------
 	
 	; Turn 90 degrees to right
 	LOADI	-90
 	CALL	Turn
-	; Clear SSEG2
-	LOAD	DVel
-	OUT		SSEG2
 	; Move forward 4 feet
 	LOAD	Ft4
 	CALL	MoveDistance
@@ -134,31 +153,42 @@ Section3_invalid:
 	STORE	SonVal0
 	OUT 	SSEG1
 	
+	LOAD	SonVal5
+	SUB		InvalidDistance
+	JPOS	Section3_invalid	; Invalid value received
+	
 	LOAD	SonVal0
-	ADD		Sect3WallDistance
+	SUB		SonVal5
+	STORE	WallDiff
+	
+	LOAD	WallDiff
+	ADD		-150
 	JPOS	Section3_far
+	LOAD	WallDiff
+	ADD		150
 	JNEG	Section3_close
-	JZERO	Section3_cont
+	
+	JUMP	Section3_cont
 Section3_far:
-	LOADI	2
+	LOADI	45
 	CALL	Turn
-	LOAD ReevalDistance
+	LOAD	ReevalDistance
 	CALL	MoveDistance
+	LOADI	-45
+	CALL	Turn
 	JUMP	Section3_cont
 Section3_close:
-	LOADI	-2
+	LOADI	-45
 	CALL	Turn
-	LOAD ReevalDistance
+	LOAD	ReevalDistance
 	CALL	MoveDistance
+	LOADI	45
+	CALL	Turn
 	JUMP	Section3_cont
 Section3_cont:
 	LOAD	SonVal5
-	ADD		InvalidDistance
-	JPOS	Section3_invalid	; Invalid value received
-
-	LOAD	SonVal5
-	ADD		TooFarAwayDistance
-	JNEG	Section3_invalid
+	SUB		TooFarAwayDistance
+	JNEG	Section3_invalid	; Haven't reached end of obstacle yet
 	
 	; Move forward a half meter before the turn
 	LOAD	HalfMeter
@@ -176,50 +206,56 @@ Section3_cont:
 	;JUMP	Forever
 	JUMP	Die
 
-		
-Test1:  ; P.S. "Test1" is a terrible, non-descriptive label
-	CALL   GetThetaErr ; get the heading error
-	CALL   Abs         ; absolute value
-	OUT    LCD         ; useful debug info
-	ADDI   -5          ; check if within 5 degrees of target
-	JPOS   Test1       ; if not, keep testing
+Turn:
+	OUT		RESETPOS	
+	STORE	DTheta
+	OUT		SSEG2
 	
-	; the robot is now within 5 degrees of 270
+	LOAD	DVel
+	STORE	PVel
+	LOADI	50		; Set turning speed to 50
+	STORE	DVel
+Turn_loop:
+	CALL   GetThetaErr	; get the heading error
+	CALL   Abs			; absolute value
+	OUT	   SSEG2
+	ADDI   -1			; check if within x degrees of target
+	JPOS   Turn_loop	; if not, keep checking
+	; Restore previous movement speed
+	LOAD	PVel
+	STORE	DVel
+	RETURN
 	
-	LOAD   Mask5       ; defined below as 0b0100
-	OUT    SONAREN     ; enable sonar 2
-	LOAD   FMid       ; defined below as 100
-	STORE  DVel
-
-
-;Test2:
-;	IN     YPOS        ; get the Y position from odometry
- ;                      ; remember that the bot is moving -Y
-;	ADD    Ft4         ; defined below as 4 ft in robot units
-;	OUT    LCD         ; useful debug info
-;	JNEG   Die         ; if past 4 ft, stop
-;	
-;	IN     DIST2       ; get sonar2 distance
-;	OUT    SSEG1       ; useful debug info
-;	ADDI   -610        ; 2ft in mm
-;	JNEG   Die
-;
-;	JUMP   Test2       ; still going
-
-Modified:
-	IN		DIST5
-	OUT 	SSEG1
-	ADDI	-915
+MoveDistance:
+	CALL	Neg
+	STORE	MoveDistance_val	; Will now be negative
+MoveDistance_loop:
+	CALL	GetDistance
+	;OUT		SSEG2
 	
-	LOADI  0
-	STORE  DVel        ; turn in-place (zero velocity)
-	LOADI  270         ; 270 is 90 to the right
-	STORE  DTheta      ; desired heading
+	ADD		MoveDistance_val
+	JNEG	MoveDistance_loop
 	
-	JUMP Die
+	; Set speed back
+	OUT		RESETPOS
+	RETURN
+	MoveDistance_val: DW 0
 	
-
-
+GetDistance:
+	IN		XPOS
+	OUT		SSEG1
+	STORE	L2X
+	IN		YPOS
+	OUT		SSEG2
+	STORE	L2Y
+	CALL	L2Estimate	; Get distance of hypotanuse
+	RETURN
+	
+NegateSpeed:
+	LOAD	DVel
+	CALL	Neg
+	STORE	DVel
+	RETURN
 
 Die:
 ; Sometimes it's useful to permanently stop execution.
@@ -359,88 +395,6 @@ M360N:
 	ADDI   360
 	JNEG   M360N
 	RETURN
-	
-Turn:
-	ADD		DTheta
-	CALL	Mod360
-	STORE	DTheta
-	
-	LOAD	DVel
-	STORE	PVel
-	LOADI	50		; Set turning speed to 50
-	STORE	DVel
-Turn_loop:
-	CALL   GetThetaErr	; get the heading error
-	CALL   Abs			; absolute value
-	OUT	   SSEG2
-	ADDI   -1			; check if within x degrees of target
-	JPOS   Turn_loop	; if not, keep checking
-	; Restore previous movement speed
-	LOAD	PVel
-	STORE	DVel
-	RETURN
-	
-MoveDistance:
-	CALL	Neg
-	STORE	MoveDistance_val	; Will now be negative
-MoveDistance_loop:
-	CALL	GetDistance
-	OUT		SSEG2
-	
-	ADD		MoveDistance_val
-	JNEG	MoveDistance_loop
-	
-	; Set speed back
-	OUT		RESETPOS
-	RETURN
-	MoveDistance_val: DW 0
-	
-GetDistance:
-	IN		XPOS
-	STORE	L2X
-	IN		YPOS
-	STORE	L2Y
-	CALL	L2Estimate	; Get distance of hypotanuse
-	RETURN
-	
-NegateSpeed:
-	LOAD	DVel
-	CALL	Neg
-	STORE	DVel
-	RETURN
-	
-; Measures from outside of loop (Sensor 0)
-CorrectDistance:
-	STORE	CD_buffer	; Desired distance to wall (should be negative)
-	LOAD	DVel
-	STORE	PVel
-	LOADI	50	; Slow movement for measuring at
-	STORE	DVel
-	
-	IN		DIST0
-	STORE	SonVal0
-	OUT 	SSEG1
-	
-	ADD		CD_buffer
-	CALL	Abs
-	ADDI	50		; 5 cm threshold
-	JPOS	CD_cont	; Within threshold
-	LOAD	SonVal0
-	ADD		CD_buffer
-	;JPOS	CD_far
-	;JNEG	CD_close
-CD_far:
-	CALL MoveDistance
-CD_close:
-CD_cont:
-	; Turn back
-	LOADI 	-90
-	CALL	Turn
-
-	LOAD PVel
-	STORE DVel
-	RETURN
-	CD_buffer: DW 0
 
 ;*******************************************************************************
 ; Abs: 2's complement absolute value
@@ -880,6 +834,7 @@ SonVal0:	DW 0
 SonVal5:	DW 0
 ExceedCount: DW 0
 PVel:		DW 0 ; Previous velocity
+WallDiff:	DW 0
 
 ;***************************************************************
 ;* Constants
@@ -897,9 +852,9 @@ Seven:    DW 7
 Eight:    DW 8
 Nine:     DW 9
 Ten:      DW 10
-InvalidDistance: 	DW -4096
-TooFarAwayDistance:	DW -1536 ; -0x500
-Sect3WallDistance:	DW -768	; -0x300
+InvalidDistance: 	DW 4096
+TooFarAwayDistance:	DW 1536 ; -0x500
+Sect3WallDistance:	DW 768	; -0x300
 ReevalDistance:		DW	200	; ~200mm
 
 ; Some bit masks.
