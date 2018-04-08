@@ -104,42 +104,6 @@ Section3:
 	LOADI	250
 	STORE	DVel
 	
-	; TEST
-	; TEST
-	LOAD	HalfMeter
-	CALL	MoveDistance
-	LOADI	-90
-	CALL	Turn
-	LOAD	HalfMeter
-	CALL	MoveDistance
-	LOADI	-90
-	CALL	Turn
-	LOAD	HalfMeter
-	CALL	MoveDistance
-	LOADI	-90
-	CALL	Turn
-	LOAD	HalfMeter
-	CALL	MoveDistance
-	LOADI	-90
-	CALL	Turn
-	JUMP Die
-	; -----------------------------------------
-	
-	LOAD	HalfMeter
-	CALL	MoveDistance
-	LOAD	-90
-	CALL	Turn
-	LOAD	HalfMeter
-	CALL	MoveDistance
-	LOAD	-90
-	CALL	Turn
-	LOAD	HalfMeter
-	CALL	MoveDistance
-	LOAD	-90
-	CALL	Turn
-	JUMP Die
-	; -----------------------------------------
-	
 	; Turn 90 degrees to right
 	LOADI	-90
 	CALL	Turn
