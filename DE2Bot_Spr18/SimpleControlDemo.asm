@@ -76,7 +76,7 @@ Main:
 	STORE  DVel        ; zero desired forward velocity
 	STORE  DTheta      ; desired heading = 0 degrees
 	; configure timer interrupts to enable the movement control code
-	LOAD   15          ; period = (10 ms * 10) = 0.1s, or 10Hz.
+	LOADI   15          ; period = (10 ms * 10) = 0.1s, or 10Hz.
 	OUT    CTIMER      ; turn on timer peripheral
 	SEI    &B0010      ; enable interrupts from source 2 (timer)
 	; at this point, timer interrupts will be firing at 10Hz, and
@@ -97,6 +97,7 @@ State0:
 	STORE	DistanceToTravel
 	OUT		RESETPOS
 CheckDistance:
+	CALL	ControlMovement
 	;Check if we have traveled the correct distance
 	IN 		XPOS
 	STORE 	L2X
@@ -112,11 +113,132 @@ State1:
 	LOAD	State
 	ADDI	-2
 	JZERO	State2
+	JUMP	State1
 			
 State2:
+	JUMP	State2
 	
 	
 State3:
+	LOADI	250
+	STORE	DVel
+	
+	; Turn 90 degrees to right
+	LOADI	-90
+	CALL	Turn
+	; Move forward 4 feet
+	LOAD	Ft4
+	CALL	MoveDistance
+State3_invalid:	
+	IN		DIST5
+	STORE	SonVal5
+	IN		DIST0
+	STORE	SonVal0
+	OUT 	SSEG1
+	
+	LOAD	SonVal5
+	SUB		InvalidDistance
+	JPOS	State3_invalid	; Invalid value received
+	
+	LOAD	SonVal0
+	SUB		SonVal5
+	STORE	WallDiff
+	
+	LOAD	WallDiff
+	ADD		-150
+	JPOS	State3_far
+	LOAD	WallDiff
+	ADD		150
+	JNEG	State3_close
+	
+	JUMP	State3_cont
+State3_far:
+	LOADI	45
+	CALL	Turn
+	LOAD	ReevalDistance
+	CALL	MoveDistance
+	LOADI	-45
+	CALL	Turn
+	JUMP	State3_cont
+State3_close:
+	LOADI	-45
+	CALL	Turn
+	LOAD	ReevalDistance
+	CALL	MoveDistance
+	LOADI	45
+	CALL	Turn
+	JUMP	State3_cont
+State3_cont:
+	LOAD	SonVal5
+	SUB		TooFarAwayDistance
+	JNEG	State3_invalid	; Haven't reached end of obstacle yet
+	
+	; Move forward a half meter before the turn
+	LOAD	HalfMeter
+	CALL	MoveDistance
+	; Turn 90 to the right again to complete this section
+	LOADI	-90
+	CALL	Turn
+	
+	; Stop robot and halt
+	;LOAD	Zero
+	;STORE	SONAREN
+	;STORE	DVel
+	;LOAD	Dead
+	;STORE	SSEG2
+	;JUMP	Forever
+	JUMP	Die
+
+Turn:
+	OUT		RESETPOS	
+	STORE	DTheta
+	OUT		SSEG2
+	
+	LOAD	DVel
+	STORE	PVel
+	LOADI	50		; Set turning speed to 50
+	STORE	DVel
+Turn_loop:
+	CALL   GetThetaErr	; get the heading error
+	CALL   Abs			; absolute value
+	OUT	   SSEG2
+	ADDI   -1			; check if within x degrees of target
+	JPOS   Turn_loop	; if not, keep checking
+	; Restore previous movement speed
+	LOAD	PVel
+	STORE	DVel
+	RETURN
+	
+MoveDistance:
+	CALL	Neg
+	STORE	MoveDistance_val	; Will now be negative
+MoveDistance_loop:
+	CALL	GetDistance
+	;OUT		SSEG2
+	
+	ADD		MoveDistance_val
+	JNEG	MoveDistance_loop
+	
+	; Set speed back
+	OUT		RESETPOS
+	RETURN
+	MoveDistance_val: DW 0
+	
+GetDistance:
+	IN		XPOS
+	OUT		SSEG1
+	STORE	L2X
+	IN		YPOS
+	OUT		SSEG2
+	STORE	L2Y
+	CALL	L2Estimate	; Get distance of hypotanuse
+	RETURN
+	
+NegateSpeed:
+	LOAD	DVel
+	CALL	Neg
+	STORE	DVel
+	RETURN
 	
 State4:
 	
@@ -235,10 +357,10 @@ SectionOne:
 	
 	LOAD	State
 	ADDI	-1
-	JZERO	State1
+	JZERO	States1
 	RETI
 	
-State1:
+States1:
 	;see if we are currently realigning
 	LOAD Realigning
 	JPOS Realign
@@ -398,7 +520,7 @@ Part3:		;Move forward x distance
 	STORE	Part
 	;Store Distance to travel
 	AND		ZERO
-	ADDI	920					;  x
+	ADDI	1000					;  x
 	STORE	DistanceToTravel
 Part3Continue:
 	IN		DIST5
@@ -1014,6 +1136,8 @@ SonVal0:  DW 0
 SonVal5:  DW 0
 ExceedCount: DW 0
 Period:	  DW 0
+PVel:		DW 0 ; Previous velocity
+WallDiff:	DW 0
 
 ;***************************************************************
 ;* Constants
@@ -1031,6 +1155,11 @@ Seven:    DW 7
 Eight:    DW 8
 Nine:     DW 9
 Ten:      DW 10
+
+InvalidDistance: 	DW 4096
+TooFarAwayDistance:	DW 1536 ; -0x500
+Sect3WallDistance:	DW 768	; -0x300
+ReevalDistance:		DW	200	; ~200mm
 
 ; Some bit masks.
 ; Masks of multiple bits can be constructed by ORing these
