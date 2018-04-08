@@ -104,10 +104,19 @@ Section3:
 	LOADI	300
 	STORE	DVel
 	
-	; TEMP
-	LOADI	-500
+	; TEMP!
+	CALL	NegateSpeed
+	LOADI	500
+	CALL	MoveDistance
+	CALL	NegateSpeed
+	
+	LOADI	90
+	CALL	Turn
+	
+	LOADI	500
 	CALL	MoveDistance
 	JUMP	Die
+	;------------------------------------------------
 	
 	; Turn 90 degrees to right
 	LOADI	-90
@@ -371,29 +380,33 @@ Turn_loop:
 	STORE	DVel
 	RETURN
 	
-; TODO: WE NEED A MOVEDISTANCE_FORWARD AND BACKWARD
 MoveDistance:
-	STORE	MoveDistance_val
-	JPOS	MoveDistance_loop
-	; For negative distances move backwards
-	CALL NegateSpeed
+	CALL	Neg
+	STORE	MoveDistance_val	; Will now be negative
 MoveDistance_loop:
-	IN		YPOS
+	CALL	GetDistance
+	OUT		SSEG2
+	
 	ADD		MoveDistance_val
-	JPOS	MoveDistance_loop
+	JNEG	MoveDistance_loop
 	
 	; Set speed back
-	LOAD	MoveDistance_val
-	JPOS	MD_ret
-	CALL	NegateSpeed
-MD_ret:
+	OUT		RESETPOS
 	RETURN
 	MoveDistance_val: DW 0
 	
+GetDistance:
+	IN		XPOS
+	STORE	L2X
+	IN		YPOS
+	STORE	L2Y
+	CALL	L2Estimate	; Get distance of hypotanuse
+	RETURN
+	
 NegateSpeed:
-	LOAD DVel
-	CALL Neg
-	STORE DVel
+	LOAD	DVel
+	CALL	Neg
+	STORE	DVel
 	RETURN
 	
 ; Measures from outside of loop (Sensor 0)
