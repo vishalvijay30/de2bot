@@ -256,6 +256,30 @@ NegateSpeed:
 	STORE	DVel
 	RETURN
 	
+; variables for MD (move distance) -- this uses odometry
+; make sure robot is already moving the way it wants to
+; i.e. robot stops, turns, sets velocity and heading, sets dist to move, then calls this method
+MDXOrig:	DW 0
+MDDistToTravel: DW 0
+XPosVar:	DW 0
+MD:
+	STORE MDDistToTravel	; record how far to go
+	IN XPOS					; get current x pos
+	STORE MDXOrig			; save current x pos
+MDStart:
+	;LOADI 200 STORE DVel LOADI 180 STORE DTheta
+	CALL ControlMovement	; ensure current speed/heading
+	
+	; check if traveled MDDistToTravelmm in X direction -- just abs(curr - MDXOrig) = change
+	IN XPOS					; current x position
+	SUB MDXOrig				; curr - MDXOrig
+	CALL Abs				; positive change
+	SUB MDDistToTravel		; change - MDDistToTravel
+	; if difference >= 0 then traveled MDDistToTravel
+	JNEG MDStart
+	RETURN
+		
+	
 State4:
 	
 
