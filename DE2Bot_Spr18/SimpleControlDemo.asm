@@ -91,9 +91,15 @@ Main:
 	LOADI 	300
 	STORE	DVel
 	
+	;AND		ZERO
+	;ADDI	-90
+	;CALL 	Turn
+	
 State0:
+	LOAD	FIVE
+	CALL	MoveDistance
 	AND		ZERO
-	ADDI	500
+	ADDI	350
 	STORE	DistanceToTravel
 	OUT		RESETPOS
 CheckDistance:
@@ -116,7 +122,15 @@ State1:
 	JUMP	State1
 			
 State2:
-	JUMP	State2
+	LOAD	ZERO
+	STORE	Part
+	LOADI   ZERO
+	STORE   DVel
+	ADDI	-90
+	CALL	Turn
+	OUT		RESETPOS
+	LOAD	Ft4
+	CALL    MoveDistance
 	
 	
 State3:
@@ -203,6 +217,7 @@ Turn_loop:
 	CALL   Abs			; absolute value
 	OUT	   SSEG2
 	ADDI   -1			; check if within x degrees of target
+	CALL	ControlMovement
 	JPOS   Turn_loop	; if not, keep checking
 	; Restore previous movement speed
 	LOAD	PVel
@@ -215,6 +230,7 @@ MoveDistance:
 MoveDistance_loop:
 	CALL	GetDistance
 	;OUT		SSEG2
+	CALL    ControlMovement
 	
 	ADD		MoveDistance_val
 	JNEG	MoveDistance_loop
@@ -226,7 +242,7 @@ MoveDistance_loop:
 	
 GetDistance:
 	IN		XPOS
-	OUT		SSEG1
+	;OUT		SSEG1
 	STORE	L2X
 	IN		YPOS
 	OUT		SSEG2
@@ -351,16 +367,21 @@ CTimer_ISR:
 
 SectionOne:
 ;Assuming that the sensor reading is short range
-	IN		DIST5
-	STORE	NewSonarReading
-	OUT		SSEG1
 	
-	LOAD	State
+	;Basic Reading
+	LOAD	State	
+	OUT		SSEG1
+	;LOAD	Part
+	;OUT		SSEG2
+	
 	ADDI	-1
 	JZERO	States1
 	RETI
 	
 States1:
+	IN		DIST5
+	STORE	NewSonarReading
+	;OUT		SSEG1
 	;see if we are currently realigning
 	LOAD Realigning
 	JPOS Realign
@@ -381,9 +402,7 @@ AddOneToRangeCounter:
 	STORE	TimeOutOfRange
 	
 BadName:
-	LOAD	TimeOutOfRange
-	ADDI	-5
-	JPOS	Part3
+	
 	
 	LOAD 	Part
 	ADDI	-3
@@ -391,6 +410,10 @@ BadName:
 	
 	ADDI	-1
 	JZERO	Part4
+	
+	LOAD	TimeOutOfRange
+	ADDI	-5
+	JPOS	Part3
 	
 	
 	;See if we need to wait
@@ -495,12 +518,12 @@ SecondPart:
 	;Turn
 TurnClockwise:
 	LOAD 	ZERO
-	ADDI	-7
+	ADDI	-3
 	STORE 	DTheta
 	
 	JUMP	iamdone
 TurnCounterClockwise:
-	LOAD 	SEVEN
+	LOAD 	THREE
 	STORE 	DTheta
 	
 iamdone:
@@ -510,8 +533,8 @@ iamdone:
 	RETI
 	
 Part3:		;Move forward x distance
-	IN		DIST5
-	OUT 	SSEG1
+	;IN		DIST5
+	;OUT 	SSEG1
 	LOAD 	ZERO
 	STORE	DTheta
 	ADDI	200
@@ -519,12 +542,11 @@ Part3:		;Move forward x distance
 	LOAD	THREE
 	STORE	Part
 	;Store Distance to travel
-	AND		ZERO
-	ADDI	1000					;  x
+	LOAD	Ft4
 	STORE	DistanceToTravel
 Part3Continue:
-	IN		DIST5
-	OUT 	SSEG1
+	;IN		DIST5
+	;OUT 	SSEG1
 	
 	;Check if we have traveled the correct distance
 	IN 		XPOS
@@ -546,8 +568,6 @@ Part3Continue:
 Part4:
 	LOAD 	TWO
 	STORE	State
-	LOAD	ZERO
-	STORE	Part
 	OUT		RESETPOS
 		
 	CALL	ControlMovement
