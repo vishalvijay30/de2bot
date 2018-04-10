@@ -261,7 +261,7 @@ NegateSpeed:
 ; i.e. robot stops, turns, sets velocity and heading, sets dist to move, then calls this method
 MDXOrig:	DW 0
 MDDistToTravel: DW 0
-XPosVar:	DW 0
+
 MD:
 	STORE MDDistToTravel	; record how far to go
 	IN XPOS					; get current x pos
