@@ -99,23 +99,50 @@ Main:
 ;	STORE  DTheta      ; desired heading
 	; The robot should automatically start moving,
 	; trying to match these desired parameters.
-
-Section3:
-	LOADI	250
-	STORE	DVel
 	
+	; Set speed
+	LOADI	500
+	STORE	DVel
+Section1_init:
+	LOAD	Ft4
+	CALL	MoveDistance
+Section1:
+	IN		DIST5
+	STORE	SonVal5
+	OUT 	SSEG1
+	
+	LOAD	SonVal5
+	SUB		TooFarAwayDistance
+	JNEG	Section1 ; Haven't reached end of obstacle yet
+	
+	LOAD	HalfSecBeep
+	OUT		BEEP
+	
+	LOAD	Ft5
+	CALL	MoveDistance
+	
+Section2_init:
+	LOADI	-90
+	CALL	Turn
+	
+	LOAD	Ft5
+	CALL	MoveDistance
+	
+Section3:
 	; Turn 90 degrees to right
 	LOADI	-90
 	CALL	Turn
 	; Move forward 4 feet
 	LOAD	Ft4
 	CALL	MoveDistance
-Section3_invalid:	
+Section3_invalid:
+	CALL	WaitABit
 	IN		DIST5
 	STORE	SonVal5
+	OUT 	SSEG1
 	IN		DIST0
 	STORE	SonVal0
-	OUT 	SSEG1
+	OUT 	SSEG2
 	
 	LOAD	SonVal5
 	SUB		InvalidDistance
@@ -130,45 +157,42 @@ Section3_invalid:
 	STORE	WallDiff
 	
 	LOAD	WallDiff
-	ADD		-150
+	ADD		-250
 	JPOS	Section3_far
 	LOAD	WallDiff
-	ADD		150
+	ADD		250
 	JNEG	Section3_close
 	
 	JUMP	Section3_cont
 Section3_far:
-	LOADI	45
+	LOADI	30
 	CALL	Turn
 	LOAD	ReevalDistance
 	CALL	MoveDistance
-	LOADI	-45
+	LOADI	-30
 	CALL	Turn
 	JUMP	Section3_invalid
 Section3_close:
-	LOADI	-45
+	LOADI	-30
 	CALL	Turn
 	LOAD	ReevalDistance
 	CALL	MoveDistance
-	LOADI	45
+	LOADI	30
 	CALL	Turn
 	JUMP	Section3_invalid
 Section3_cont:
 	; Move forward a half meter before the turn
-	LOAD	HalfMeter
+	LOAD	Ft1
 	CALL	MoveDistance
-	; Turn 90 to the right again to complete this section
+
+Section4:
 	LOADI	-90
 	CALL	Turn
 	
-	; Stop robot and halt
-	;LOAD	Zero
-	;STORE	SONAREN
-	;STORE	DVel
-	;LOAD	Dead
-	;STORE	SSEG2
-	;JUMP	Forever
-	JUMP	Die
+	LOAD	Ft6
+	CALL	MoveDistance
+	
+	JUMP	Section1
 
 Turn:
 	OUT		RESETPOS	
@@ -715,6 +739,15 @@ Wloop:
 	ADDI   -10         ; 1 second at 10Hz.
 	JNEG   Wloop
 	RETURN
+	
+WaitABit:
+	OUT    TIMER
+Wloop2:
+	IN     TIMER
+	OUT    XLEDS       ; User-feedback that a pause is occurring.
+	ADDI   -2          ; 0.2 seconds at 10Hz.
+	JNEG   Wloop2
+	RETURN
 
 ; This subroutine will get the battery voltage,
 ; and stop program execution if it is too low.
@@ -817,9 +850,10 @@ Eight:    DW 8
 Nine:     DW 9
 Ten:      DW 10
 InvalidDistance: 	DW 4096
-TooFarAwayDistance:	DW 1536 ; -0x500
-Sect3WallDistance:	DW 768	; -0x300
-ReevalDistance:		DW	200	; ~200mm
+TooFarAwayDistance:	DW 1536 ; 0x500
+Sect3WallDistance:	DW 768	; 0x300
+ReevalDistance:		DW 100	; ~130mm
+HalfSecBeep: 		DW &H0440	; 1KHz for 0.5 seconds
 
 ; Some bit masks.
 ; Masks of multiple bits can be constructed by ORing these
@@ -839,9 +873,12 @@ LowNibl:  DW &HF       ; 0000 0000 0000 1111
 ; some useful movement values
 OneMeter: DW 961       ; ~1m in 1.04mm units
 HalfMeter: DW 481      ; ~0.5m in 1.04mm units
+Ft1:      DW 293
 Ft2:      DW 586       ; ~2ft in 1.04mm units
 Ft3:      DW 879
 Ft4:      DW 1172
+Ft5:      DW 1465
+Ft6:      DW 1758
 Deg90:    DW 90        ; 90 degrees in odometer units
 Deg180:   DW 180       ; 180
 Deg270:   DW 270       ; 270
