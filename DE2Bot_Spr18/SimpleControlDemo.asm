@@ -88,30 +88,16 @@ Main:
 	LOAD 	Mask5
 	OUT		SONAREN	; Enable sonars 0 and 5 (180 degrees apart)
 	
-	LOADI 	300
+	LOADI 	500
 	STORE	DVel
 	
 	;AND		ZERO
 	;ADDI	-90
 	;CALL 	Turn
-	
+
 State0:
-	LOAD	FIVE
+	LOADI	350
 	CALL	MoveDistance
-	AND		ZERO
-	ADDI	350
-	STORE	DistanceToTravel
-	OUT		RESETPOS
-CheckDistance:
-	CALL	ControlMovement
-	;Check if we have traveled the correct distance
-	IN 		XPOS
-	STORE 	L2X
-	IN 		YPOS
-	STORE 	L2Y
-	CALL	L2ESTIMATE
-	SUB		DistanceToTravel
-	JNEG	CheckDistance ;I need to continue moving
 	
 	LOAD	ONE
 	STORE	State
@@ -124,19 +110,29 @@ State1:
 State2:
 	LOAD	ZERO
 	STORE	Part
-	LOADI   ZERO
-	STORE   DVel
-	ADDI	-90
-	CALL	Turn
-	OUT		RESETPOS
-	LOAD	Ft4
-	CALL    MoveDistance
 	
-	
-State3:
-	LOADI	250
+	LOADI	500
 	STORE	DVel
+	LOADI	-90
+	CALL	Turn
+	LOADI	Ft4
+	ADDI	1020
+	CALL    MoveDistance
+	LOAD	THREE
+	STORE	State
 	
+
+State3_2:
+	;Move forward a certain amount
+	LOAD	Straight
+	CALL	MoveDistance
+	LOADI	-90
+	CALL	Turn
+	LOAD	FOUR
+	STORE   State
+	Jump    State4
+	
+State3:	
 	; Turn 90 degrees to right
 	LOADI	-90
 	CALL	Turn
@@ -153,6 +149,10 @@ State3_invalid:
 	LOAD	SonVal5
 	SUB		InvalidDistance
 	JPOS	State3_invalid	; Invalid value received
+	
+	LOAD	SonVal5
+	SUB		TooFarAwayDistance
+	JPOS	State3_cont	; Haven't reached end of obstacle yet
 	
 	LOAD	SonVal0
 	SUB		SonVal5
@@ -173,7 +173,7 @@ State3_far:
 	CALL	MoveDistance
 	LOADI	-45
 	CALL	Turn
-	JUMP	State3_cont
+	JUMP	State3_invalid
 State3_close:
 	LOADI	-45
 	CALL	Turn
@@ -181,12 +181,8 @@ State3_close:
 	CALL	MoveDistance
 	LOADI	45
 	CALL	Turn
-	JUMP	State3_cont
+	JUMP	State3_invalid
 State3_cont:
-	LOAD	SonVal5
-	SUB		TooFarAwayDistance
-	JNEG	State3_invalid	; Haven't reached end of obstacle yet
-	
 	; Move forward a half meter before the turn
 	LOAD	HalfMeter
 	CALL	MoveDistance
@@ -206,7 +202,6 @@ State3_cont:
 Turn:
 	OUT		RESETPOS	
 	STORE	DTheta
-	OUT		SSEG2
 	
 	LOAD	DVel
 	STORE	PVel
@@ -217,7 +212,6 @@ Turn_loop:
 	CALL   Abs			; absolute value
 	OUT	   SSEG2
 	ADDI   -1			; check if within x degrees of target
-	CALL	ControlMovement
 	JPOS   Turn_loop	; if not, keep checking
 	; Restore previous movement speed
 	LOAD	PVel
@@ -230,7 +224,6 @@ MoveDistance:
 MoveDistance_loop:
 	CALL	GetDistance
 	;OUT		SSEG2
-	CALL    ControlMovement
 	
 	ADD		MoveDistance_val
 	JNEG	MoveDistance_loop
@@ -242,10 +235,10 @@ MoveDistance_loop:
 	
 GetDistance:
 	IN		XPOS
-	;OUT		SSEG1
+	OUT		SSEG1
 	STORE	L2X
 	IN		YPOS
-	OUT		SSEG2
+	;OUT		SSEG2
 	STORE	L2Y
 	CALL	L2Estimate	; Get distance of hypotanuse
 	RETURN
@@ -281,8 +274,14 @@ MDStart:
 		
 	
 State4:
-	
-
+	LOAD	Ft4
+	ADDI	400
+	CALL	MoveDistance
+	LOADI	-90
+	CALL    Turn
+	LOAD	ZERO
+	STORE	State
+	JUMP	State0
 
 
 ; As a quick demo of the movement control, the robot is 
@@ -400,6 +399,7 @@ SectionOne:
 	
 	ADDI	-1
 	JZERO	States1
+	CALL	ControlMovement
 	RETI
 	
 States1:
@@ -566,7 +566,7 @@ Part3:		;Move forward x distance
 	LOAD	THREE
 	STORE	Part
 	;Store Distance to travel
-	LOAD	Ft4
+	LOADI	800
 	STORE	DistanceToTravel
 Part3Continue:
 	;IN		DIST5
@@ -1235,6 +1235,7 @@ FMid:     DW 350       ; 350 is a medium speed
 RMid:     DW -350
 FFast:    DW 500       ; 500 is almost max speed (511 is max)
 RFast:    DW -500
+Straight: DW &HBE8
 
 MinBatt:  DW 140       ; 14.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
