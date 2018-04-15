@@ -253,9 +253,10 @@ CTimer_ISR:
 SectionOne:
 
 	;Basic Reading
-	LOAD	State	
+	LOAD	Part
 	OUT		SSEG1
 	
+	LOAD	State
 	ADDI	-1
 	JZERO	States1
 	CALL	ControlMovement
@@ -266,8 +267,8 @@ States1:
 	STORE	NewSonarReading
 
 	;see if we are currently realigning
-	LOAD Realigning
-	JPOS Realign
+	LOAD 	Realigning
+	JPOS 	Realign
 	
 	;See if the sensor is longRange or already in part 3
 	LOAD	NewSonarReading
@@ -354,7 +355,8 @@ Realign:
 	SUB		DistanceToTravel
 	SUB		CurrentDistance
 	JNEG	iamdone ;I need to continue realigning
-	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit and maybe reset odometry
+	
+	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit
 	LOAD 	ZERO
 	STORE	DTheta
 	STORE	Realigning
@@ -437,7 +439,7 @@ Part3:		;Move forward x distance
 	LOAD	THREE
 	STORE	Part
 	;Store Distance to travel
-	LOADI	300				;d1
+	LOADI	500				;d1
 	STORE	DistanceToTravel
 	IN		XPOS
 	STORE	L2X
