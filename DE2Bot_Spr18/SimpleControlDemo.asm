@@ -450,6 +450,7 @@ Part3:		;Move forward x distance
 	STORE	L2Y
 	CALL	L2ESTIMATE
 	STORE	CurrentDistance
+	JUMP	iamdone
 Part3Continue:
 	;IN		DIST5
 	;OUT 	SSEG1
