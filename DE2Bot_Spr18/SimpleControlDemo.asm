@@ -297,6 +297,8 @@ BadName:
 	
 	LOAD	TimeOutOfRange
 	ADDI	-5
+	LOAD	ZERO
+	STORE	TimeOutOfRange
 	JPOS	Part3
 	
 	
@@ -354,6 +356,7 @@ Realign:
 	CALL	L2ESTIMATE
 	SUB		DistanceToTravel
 	SUB		CurrentDistance
+	OUT		SSEG2
 	JNEG	iamdone ;I need to continue realigning
 	
 	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit
