@@ -103,99 +103,54 @@ Main:
 	; Set speed
 	LOADI	500
 	STORE	DVel
-Section1_init:
-	LOAD	Ft4
+	OUT		RESETPOS
+	LOAD	Ft2
 	CALL	MoveDistance
-Section1:
+Section:
 	IN		DIST5
 	STORE	SonVal5
 	OUT 	SSEG1
 	
+	IN		DIST4
+	STORE	SonVal4
+	
+	IN		DIST3
+	STORE	SonVal3
+	
+	;LOAD	SonVal5
+	;SUB 	InvalidDistance
+	;JPOS	Section
+	
+	LOAD	SonVal3
+	SUB		TooFarAwayDistance
+	JNEG	TooClose
+	
+	LOAD	SonVal4
+	SUB		TooFarAwayDistance
+	JNEG	TooClose
+	
 	LOAD	SonVal5
 	SUB		TooFarAwayDistance
-	JNEG	Section1 ; Haven't reached end of obstacle yet
+	JNEG	TooClose
 	
-	LOAD	HalfSecBeep
-	OUT		BEEP
-	
-	LOAD	Ft5
-	CALL	MoveDistance
-	
-Section2_init:
-	LOADI	-90
-	CALL	Turn
-	
-	LOAD	Ft6
-	CALL	MoveDistance
-	
-Section3:
-	; Turn 90 degrees to right
-	LOADI	-90
-	CALL	Turn
-	; Move forward 4 feet
-	LOAD	Ft4
-	CALL	MoveDistance
-Section3_invalid:
+	JUMP	TooFar
+TooClose:
+	LOAD	DTheta
+	ADDI	5
+	STORE	DTheta
+	JUMP	PostCorrection
+TooFar:
+	LOAD	DTheta
+	ADDI	-5
+	STORE	DTheta
+	JUMP	PostCorrection
+PostCorrection:
+	;LOAD	Ft1
+	;CALL	MoveDistance
 	CALL	WaitABit
-	IN		DIST5
-	STORE	SonVal5
-	OUT 	SSEG1
-	IN		DIST0
-	STORE	SonVal0
-	OUT 	SSEG2
+	JUMP	Section
 	
-	LOAD	SonVal5
-	SUB		InvalidDistance
-	JPOS	Section3_invalid	; Invalid value received
-	
-	LOAD	SonVal5
-	SUB		TooFarAwayDistance
-	JPOS	Section3_cont	; Haven't reached end of obstacle yet
-	
-	LOAD	SonVal0
-	SUB		SonVal5
-	STORE	WallDiff
-	
-	LOAD	WallDiff
-	ADD		-250
-	JPOS	Section3_far
-	LOAD	WallDiff
-	ADD		250
-	JNEG	Section3_close
-	
-	JUMP	Section3_cont
-Section3_far:
-	LOADI	30
-	CALL	Turn
-	LOAD	ReevalDistance
-	CALL	MoveDistance
-	LOADI	-30
-	CALL	Turn
-	JUMP	Section3_invalid
-Section3_close:
-	LOADI	-30
-	CALL	Turn
-	LOAD	ReevalDistance
-	CALL	MoveDistance
-	LOADI	30
-	CALL	Turn
-	JUMP	Section3_invalid
-Section3_cont:
-	; DEBUG info
-	LOAD	SonVal5
-	OUT		LCD
-	; Move forward before the turn
-	LOAD	Ft1
-	CALL	MoveDistance
-
-Section4:
-	LOADI	-90
-	CALL	Turn
-	
-	LOAD	Ft6
-	CALL	MoveDistance
-	
-	JUMP	Section1
+; ---------------------------------------
 
 Turn:
 	OUT		RESETPOS	
@@ -831,6 +786,8 @@ I2CError:
 Temp:     DW 0 ; "Temp" is not a great name, but can be useful
 
 SonVal0:	DW 0
+SonVal3:	DW 0
+SonVal4:	DW 0
 SonVal5:	DW 0
 ExceedCount: DW 0
 PVel:		DW 0 ; Previous velocity
@@ -853,10 +810,7 @@ Eight:    DW 8
 Nine:     DW 9
 Ten:      DW 10
 InvalidDistance: 	DW 4096
-TooFarAwayDistance:	DW 1536 ; 0x500
-Sect3WallDistance:	DW 768	; 0x300
-ReevalDistance:		DW 100	; ~130mm
-HalfSecBeep: 		DW &H0440	; 1KHz for 0.5 seconds
+TooFarAwayDistance:	DW 900
 
 ; Some bit masks.
 ; Masks of multiple bits can be constructed by ORing these
@@ -868,6 +822,7 @@ Mask3:    DW &B00001000
 Mask4:    DW &B00010000
 Mask5:    DW &B00100000
 Mask50:	  DW &B00100001 ; Mask0 OR Mask5
+Mask345:  DW &B00111000 ; Mask0 OR Mask5
 Mask6:    DW &B01000000
 Mask7:    DW &B10000000
 LowByte:  DW &HFF      ; binary 00000000 1111111
