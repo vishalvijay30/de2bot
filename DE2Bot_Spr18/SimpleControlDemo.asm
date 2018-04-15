@@ -568,6 +568,8 @@ Part3:		;Move forward x distance
 	;Store Distance to travel
 	LOADI	500
 	STORE	DistanceToTravel
+	OUT		RESETPOS
+	JUMP	iamdone
 Part3Continue:
 	;IN		DIST5
 	;OUT 	SSEG1
