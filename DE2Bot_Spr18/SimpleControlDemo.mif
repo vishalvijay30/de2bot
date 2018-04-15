@@ -760,7 +760,7 @@ CONTENT
            2EB : FEA2;  -- RMid:     DW -350
            2EC : 01F4;  -- FFast:    DW 500       ; 500 is almost max speed (511 is max)
            2ED : FE0C;  -- RFast:    DW -500
-           2EE : 0BE8;  -- Straight: DW &HBE8
+           2EE : 0DE8;  -- Straight: DW &HDE8
            2EF : 008C;  -- MinBatt:  DW 140       ; 14.0V - minimum safe battery voltage
            2F0 : 1190;  -- I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
            2F1 : 0190;  -- I2CRCmd:  DW &H0190    ; write nothing, read one byte, addr 0x90
