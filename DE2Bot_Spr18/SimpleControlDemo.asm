@@ -97,7 +97,7 @@ Main:
 
 State0:
 	LOADI	350
-	CALL	MoveDistance
+	CALL	MoveDistance		;d0
 	
 	LOAD	ONE
 	STORE	State
@@ -113,91 +113,45 @@ State2:
 	
 	LOADI	500
 	STORE	DVel
+	
 	LOADI	-90
 	CALL	Turn
+	
 	LOADI	Ft4
-	ADDI	1020
+	ADDI	1020			;d3
 	CALL    MoveDistance
+	
+	; Turn 90 degrees to right
+	LOADI	-90
+	CALL	Turn
+	
 	LOAD	THREE
 	STORE	State
 	
 
 State3_2:
 	;Move forward a certain amount
-	LOAD	Straight
+	LOAD	Straight				;d4
 	CALL	MoveDistance
+	
 	LOADI	-90
 	CALL	Turn
+	
 	LOAD	FOUR
 	STORE   State
 	Jump    State4
 	
-State3:	
-	; Turn 90 degrees to right
-	LOADI	-90
-	CALL	Turn
-	; Move forward 4 feet
+State4:
 	LOAD	Ft4
+	ADDI	400					;d5
 	CALL	MoveDistance
-State3_invalid:	
-	IN		DIST5
-	STORE	SonVal5
-	IN		DIST0
-	STORE	SonVal0
-	OUT 	SSEG1
-	
-	LOAD	SonVal5
-	SUB		InvalidDistance
-	JPOS	State3_invalid	; Invalid value received
-	
-	LOAD	SonVal5
-	SUB		TooFarAwayDistance
-	JPOS	State3_cont	; Haven't reached end of obstacle yet
-	
-	LOAD	SonVal0
-	SUB		SonVal5
-	STORE	WallDiff
-	
-	LOAD	WallDiff
-	ADD		-150
-	JPOS	State3_far
-	LOAD	WallDiff
-	ADD		150
-	JNEG	State3_close
-	
-	JUMP	State3_cont
-State3_far:
-	LOADI	45
-	CALL	Turn
-	LOAD	ReevalDistance
-	CALL	MoveDistance
-	LOADI	-45
-	CALL	Turn
-	JUMP	State3_invalid
-State3_close:
-	LOADI	-45
-	CALL	Turn
-	LOAD	ReevalDistance
-	CALL	MoveDistance
-	LOADI	45
-	CALL	Turn
-	JUMP	State3_invalid
-State3_cont:
-	; Move forward a half meter before the turn
-	LOAD	HalfMeter
-	CALL	MoveDistance
-	; Turn 90 to the right again to complete this section
 	LOADI	-90
-	CALL	Turn
+	CALL    Turn
+	LOAD	ZERO
+	STORE	State
+	JUMP	State0
 	
-	; Stop robot and halt
-	;LOAD	Zero
-	;STORE	SONAREN
-	;STORE	DVel
-	;LOAD	Dead
-	;STORE	SSEG2
-	;JUMP	Forever
-	JUMP	Die
+
 
 Turn:
 	OUT		RESETPOS	
@@ -273,15 +227,7 @@ MDStart:
 	RETURN
 		
 	
-State4:
-	LOAD	Ft4
-	ADDI	400
-	CALL	MoveDistance
-	LOADI	-90
-	CALL    Turn
-	LOAD	ZERO
-	STORE	State
-	JUMP	State0
+
 
 
 ; As a quick demo of the movement control, the robot is 
@@ -389,13 +335,10 @@ Forever:
 CTimer_ISR:
 
 SectionOne:
-;Assuming that the sensor reading is short range
-	
+
 	;Basic Reading
 	LOAD	State	
 	OUT		SSEG1
-	;LOAD	Part
-	;OUT		SSEG2
 	
 	ADDI	-1
 	JZERO	States1
@@ -455,7 +398,7 @@ Begin:
 	STORE 	Delta
 	JPOS 	FacingAway
 	JNEG 	FacingTowards
-	JZERO 	Realign
+	JZERO 	BeginRealign
 
 FacingAway:
 	SUB 	Threshold
@@ -502,6 +445,8 @@ Realign:
 		
 BeginRealign:	
 	;figure out if we need to change
+	
+	
 	IN		DIST5
 	SUB		DesiredDisFromWall
 	ADDI	-10
@@ -514,6 +459,9 @@ SecondPart:
 	;Reset x,y,Theta to 0
 	LOAD	ZERO
 	STORE	DTheta
+	
+	LOAD	ONE
+	STORE	Realigning
 	
 	;find distance to move
 	LOAD 	NewSonarReading
@@ -538,7 +486,7 @@ SecondPart:
 	IN		XPOS
 	STORE	L2X
 	IN		YPOS
-	SOTRE	L2Y
+	STORE	L2Y
 	CALL	L2Estimate
 	STORE	CurrentDistance
 	;Figure out direction to turn
@@ -573,7 +521,7 @@ Part3:		;Move forward x distance
 	LOAD	THREE
 	STORE	Part
 	;Store Distance to travel
-	LOADI	300
+	LOADI	300				;d1
 	STORE	DistanceToTravel
 	IN		XPOS
 	STORE	L2X
@@ -593,6 +541,7 @@ Part3Continue:
 	CALL	L2ESTIMATE
 	SUB		DistanceToTravel
 	SUB		CurrentDistance
+	OUT		SSEG2
 	JNEG	iamdone ;I need to continue moving
 	
 	;We are done moving

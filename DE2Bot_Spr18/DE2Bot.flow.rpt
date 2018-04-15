@@ -1,6 +1,6 @@
 Flow report for DE2Bot
-Thu Apr 12 20:19:34 2018
-Quartus II Version 9.1 Build 350 03/24/2010 Service Pack 2 SJ Full Version
+Sun Apr 15 13:20:27 2018
+Quartus II 64-Bit Version 9.1 Build 350 03/24/2010 Service Pack 2 SJ Full Version
 
 
 ---------------------
@@ -38,7 +38,7 @@ applicable agreement for further details.
 +------------------------------------------------------------------------------------+
 ; Flow Summary                                                                       ;
 +------------------------------------+-----------------------------------------------+
-; Flow Status                        ; Successful - Thu Apr 12 20:19:34 2018         ;
+; Flow Status                        ; Successful - Sun Apr 15 13:20:27 2018         ;
 ; Quartus II Version                 ; 9.1 Build 350 03/24/2010 SP 2 SJ Full Version ;
 ; Revision Name                      ; DE2Bot                                        ;
 ; Top-level Entity Name              ; DE2bot                                        ;
@@ -55,6 +55,7 @@ applicable agreement for further details.
 ; Total memory bits                  ; 107,264 / 483,840 ( 22 % )                    ;
 ; Embedded Multiplier 9-bit elements ; 42 / 70 ( 60 % )                              ;
 ; Total PLLs                         ; 2 / 4 ( 50 % )                                ;
+; Quartus II 64-Bit Version          ; 9.1 Build 350 03/24/2010 SP 2 SJ Full Version ;
 +------------------------------------+-----------------------------------------------+
 
 
@@ -303,7 +304,24 @@ applicable agreement for further details.
 ; Assembler               ; 00:00:02     ; 1.0                     ; 292 MB              ; 00:00:02                           ;
 ; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 257 MB              ; 00:00:01                           ;
 ; Assembler               ; 00:00:02     ; 1.0                     ; 292 MB              ; 00:00:02                           ;
-; Total                   ; 00:05:48     ; --                      ; --                  ; 00:06:13                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; Assembler               ; 00:00:02     ; 1.0                     ; 355 MB              ; 00:00:02                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; Assembler               ; 00:00:02     ; 1.0                     ; 355 MB              ; 00:00:02                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; Assembler               ; 00:00:02     ; 1.0                     ; 355 MB              ; 00:00:02                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; Assembler               ; 00:00:02     ; 1.0                     ; 355 MB              ; 00:00:02                           ;
+; MIF/HEX Update          ; 00:00:00     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; Assembler               ; 00:00:02     ; 1.0                     ; 355 MB              ; 00:00:02                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; Assembler               ; 00:00:02     ; 1.0                     ; 355 MB              ; 00:00:02                           ;
+; MIF/HEX Update          ; 00:00:01     ; 1.0                     ; 336 MB              ; 00:00:01                           ;
+; Assembler               ; 00:00:01     ; 1.0                     ; 355 MB              ; 00:00:02                           ;
+; Total                   ; 00:06:10     ; --                      ; --                  ; 00:06:37                           ;
 +-------------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
@@ -518,6 +536,23 @@ applicable agreement for further details.
 ; Assembler               ; 2031LAB015       ; Windows Vista ; 6.2        ; x86_64         ;
 ; MIF/HEX Update          ; 2031LAB015       ; Windows Vista ; 6.2        ; x86_64         ;
 ; Assembler               ; 2031LAB015       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; Assembler               ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; Assembler               ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; Assembler               ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; Assembler               ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; Assembler               ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; Assembler               ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; MIF/HEX Update          ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
+; Assembler               ; 2031LAB001       ; Windows Vista ; 6.2        ; x86_64         ;
 +-------------------------+------------------+---------------+------------+----------------+
 
 
@@ -724,6 +759,23 @@ quartus_cdb DE2Bot -c DE2Bot --update_mif
 quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
 quartus_cdb DE2Bot -c DE2Bot --update_mif
 quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
+quartus_cdb DE2Bot -c DE2Bot --update_mif
+quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
+quartus_cdb DE2Bot -c DE2Bot --update_mif
 quartus_cdb DE2Bot -c DE2Bot --update_mif
 quartus_asm --read_settings_files=on --write_settings_files=off DE2Bot -c DE2Bot
 quartus_cdb DE2Bot -c DE2Bot --update_mif
