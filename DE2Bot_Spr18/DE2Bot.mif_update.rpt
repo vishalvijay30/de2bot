@@ -1,5 +1,5 @@
 MIF/HEX Update report for DE2Bot
-Thu Apr 12 20:28:23 2018
+Sun Apr 15 13:42:15 2018
 Quartus II 64-Bit Version 9.1 Build 350 03/24/2010 Service Pack 2 SJ Full Version
 
 
@@ -35,7 +35,7 @@ applicable agreement for further details.
 +---------------------------------------------------------------+
 ; MIF/HEX Update Summary                                        ;
 +-----------------------+---------------------------------------+
-; MIF/HEX Update Status ; Successful - Thu Apr 12 20:28:23 2018 ;
+; MIF/HEX Update Status ; Successful - Sun Apr 15 13:42:15 2018 ;
 ; Revision Name         ; DE2Bot                                ;
 ; Top-level Entity Name ; DE2bot                                ;
 ; Family                ; Cyclone II                            ;
@@ -48,10 +48,10 @@ applicable agreement for further details.
 +-----------------------------------------------------+
 ; File Name                                           ;
 +-----------------------------------------------------+
-; C:/GitHub/de2bot/DE2Bot_Spr18/COS_table.mif         ;
-; C:/GitHub/de2bot/DE2Bot_Spr18/SIN_table.mif         ;
-; C:/GitHub/de2bot/DE2Bot_Spr18/SOUND.mif             ;
 ; C:/GitHub/de2bot/DE2Bot_Spr18/SimpleControlDemo.mif ;
+; C:/GitHub/de2bot/DE2Bot_Spr18/cos_table.mif         ;
+; C:/GitHub/de2bot/DE2Bot_Spr18/sin_table.mif         ;
+; C:/GitHub/de2bot/DE2Bot_Spr18/sound.mif             ;
 +-----------------------------------------------------+
 
 
@@ -61,9 +61,9 @@ applicable agreement for further details.
 Info: *******************************************************************
 Info: Running Quartus II 64-Bit MIF/HEX Update
     Info: Version 9.1 Build 350 03/24/2010 Service Pack 2 SJ Full Version
-    Info: Processing started: Thu Apr 12 20:28:23 2018
+    Info: Processing started: Sun Apr 15 13:42:14 2018
 Info: Command: quartus_cdb DE2Bot -c DE2Bot --update_mif
-Warning: 604 out of 2048 addresses are reinitialized. The latest initialized data will replace the existing data. There are 604 warnings found, and 10 warnings are reported.
+Warning: 600 out of 2048 addresses are reinitialized. The latest initialized data will replace the existing data. There are 600 warnings found, and 10 warnings are reported.
     Warning: Memory Initialization File address 0 is reinitialized
     Warning: Memory Initialization File address 1 is reinitialized
     Warning: Memory Initialization File address 2 is reinitialized
@@ -75,14 +75,14 @@ Warning: 604 out of 2048 addresses are reinitialized. The latest initialized dat
     Warning: Memory Initialization File address 8 is reinitialized
     Warning: Memory Initialization File address 9 is reinitialized
 Info: Processed the following Memory Initialization File(s)
-    Info: Processed Memory Initialization File C:/GitHub/de2bot/DE2Bot_Spr18/COS_table.mif
-    Info: Processed Memory Initialization File C:/GitHub/de2bot/DE2Bot_Spr18/SIN_table.mif
-    Info: Processed Memory Initialization File C:/GitHub/de2bot/DE2Bot_Spr18/SOUND.mif
     Info: Processed Memory Initialization File C:/GitHub/de2bot/DE2Bot_Spr18/SimpleControlDemo.mif
+    Info: Processed Memory Initialization File C:/GitHub/de2bot/DE2Bot_Spr18/cos_table.mif
+    Info: Processed Memory Initialization File C:/GitHub/de2bot/DE2Bot_Spr18/sin_table.mif
+    Info: Processed Memory Initialization File C:/GitHub/de2bot/DE2Bot_Spr18/sound.mif
 Info: Quartus II 64-Bit MIF/HEX Update was successful. 0 errors, 11 warnings
     Info: Peak virtual memory: 335 megabytes
-    Info: Processing ended: Thu Apr 12 20:28:23 2018
-    Info: Elapsed time: 00:00:00
+    Info: Processing ended: Sun Apr 15 13:42:15 2018
+    Info: Elapsed time: 00:00:01
     Info: Total CPU time (on all processors): 00:00:01
 
 

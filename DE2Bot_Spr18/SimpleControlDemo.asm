@@ -125,7 +125,7 @@ Section2_init:
 	LOADI	-90
 	CALL	Turn
 	
-	LOAD	Ft5
+	LOAD	Ft6
 	CALL	MoveDistance
 	
 Section3:
@@ -181,7 +181,10 @@ Section3_close:
 	CALL	Turn
 	JUMP	Section3_invalid
 Section3_cont:
-	; Move forward a half meter before the turn
+	; DEBUG info
+	LOAD	SonVal5
+	OUT		LCD
+	; Move forward before the turn
 	LOAD	Ft1
 	CALL	MoveDistance
 
