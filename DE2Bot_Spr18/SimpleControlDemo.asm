@@ -405,7 +405,7 @@ SectionOne:
 States1:
 	IN		DIST5
 	STORE	NewSonarReading
-	;OUT		SSEG1
+
 	;see if we are currently realigning
 	LOAD Realigning
 	JPOS Realign
@@ -455,14 +455,13 @@ Begin:
 	STORE 	Delta
 	JPOS 	FacingAway
 	JNEG 	FacingTowards
-	;JZERO Realign
-	JZERO 	iamdone
+	JZERO 	Realign
 
 FacingAway:
 	SUB 	Threshold
 	JNEG 	BeginRealign	;if we are heading straight, see if we need to realign
 	
-	;turn clockwise 1 degree
+	;turn clockwise
 	LOAD 	DTheta
 	ADDI 	-5
 	CALL 	Mod360
@@ -508,12 +507,12 @@ BeginRealign:
 	JPOS	SecondPart
 	ADDI	20
 	JNEG	SecondPart
-	JZERO	iamdone		;We are in the desired range (440 - 460 H)
+	JZERO	iamdone		;We are in the desired range (440 - 460 mm)
 	;figure out how far to travel
 SecondPart:
 	;Reset x,y,Theta to 0
 	OUT 	RESETPOS
-	AND		ZERO
+	LOAD	ZERO
 	STORE	DTheta
 	
 	;find distance to move
@@ -559,6 +558,7 @@ iamdone:
 Part3:		;Move forward x distance
 	;IN		DIST5
 	;OUT 	SSEG1
+	
 	LOAD 	ZERO
 	STORE	DTheta
 	ADDI	200
@@ -566,7 +566,7 @@ Part3:		;Move forward x distance
 	LOAD	THREE
 	STORE	Part
 	;Store Distance to travel
-	LOADI	800
+	LOADI	300
 	STORE	DistanceToTravel
 Part3Continue:
 	;IN		DIST5
