@@ -63,6 +63,7 @@ WaitForUser:
 	STORE	Realigning
 	STORE	TimeOutOfRange
 	STORE 	State
+	STORE	Twice
 
 ;***************************************************************
 ;* Main code
@@ -91,21 +92,44 @@ Main:
 	LOADI 	300
 	STORE	DVel
 	
+	JUMP	State0
+	
 	;AND		ZERO
 	;ADDI	-90
 	;CALL 	Turn
-
-State0:
-	LOADI	350
-	CALL	MoveDistance
+AddOne:
+	LOAD 	Twice
+	ADDI	1
+	STORE	Twice
+	JUMP	State0loop
 	
-;State0loop:
-;	IN		DIST5
-;	SUB		600
-;	JPOS	State0loop
-;	
-;	LOADI	100
-;	CALL	MoveDistance
+State0:
+	;LOADI	350					;d1
+	;CALL	MoveDistance
+	LOAD	ZERO
+	STORE	Part		;Reset internal variables
+	STORE	Realigning
+	STORE	TimeOutOfRange
+	STORE 	State
+	STORE	Twice
+State0loopTwiceReset:
+	LOAD	ZERO
+	STORE	Twice
+State0loop:
+	IN		DIST5
+	SUB		Thirteen60
+	JPOS	State0loopTwiceReset
+	
+	LOAD 	Twice
+	ADDI	-3
+	JZERO	AddOne			;has to read short range multiple times
+	JNEG	AddOne
+	
+	LOAD	Zero
+	STORE	Twice
+	
+	LOADI	300
+	CALL	MoveDistance
 	
 	LOAD	ONE
 	STORE	State
@@ -119,28 +143,36 @@ State1:
 	
 			
 State2:
-	LOADI	600
+	LOADI	900				;d2
 	CALL	MoveDistance
 	LOAD	ZERO
 	STORE	Part
 	
 	LOADI	300
 	STORE	DVel
-	LOADI	-90
+	LOADI	-90				;turn1
 	CALL	Turn
-	LOADI	Ft4
-	ADDI	1020
+	
+	LOAD	Ft4
+	ADDI	1000			;d3
 	CALL    MoveDistance
+	
+	LOADI	-83			;turn2
+	CALL	Turn
+	
 	LOAD	THREE
 	STORE	State
 	
 
 State3_2:
 	;Move forward a certain amount
-	LOAD	Straight
+	LOAD	Straight		;d4
 	CALL	MoveDistance
+	;JUMP	MyDistance
+donish:	
 	LOADI	-90
-	CALL	Turn
+	CALL	Turn			;turn3
+	
 	LOAD	FOUR
 	STORE   State
 	Jump    State4
@@ -150,15 +182,72 @@ State4:
 	STORE	DVel
 
 	LOAD	Ft4
+	ADDI	700			;d5
 	CALL	MoveDistance
 	
-;loopy:
+	LOADI	-90
+	CALL	Turn			;turn4
+	
+	LOAD	ZERO
+	STORE	State
+	JUMP	State0
+	
+loopy:
 ;	IN		DIST5
 ;	ADDI	-800
 ;	JNEG	loopy
+;
+;	LOAD	Twice
+;	JZERO	AddLoopy
+;
+;	LOAD	Zero
+;	Store	Twice
 ;	
 ;	LOADI	300
 ;	CALL	MoveDistance
+
+AddLoopy:
+	LOAD	One
+	Store	Twice
+	JUMP	loopy
+	
+MyDistance:
+	CALL	Wait1
+	OUT		RESETPOS
+	
+	LOAD	Straight		;d4
+	Store	DistanceToTravel
+	
+here:
+	;wait
+	CALL	Wait1
+	;check if distance has been traveled
+	CALL	GetDistance
+	SUB		DistanceToTravel
+	JNEG	little
+	
+	IN		DIST1
+	ADDI	-300
+	JPOS	TurnCC
+	JNEG	TurnClock
+	JZERO	here
+	
+TurnCC:		
+	LOAD	DTheta
+	ADDI	1
+	STORE	DTheta
+	JUMP	here
+			
+TurnClock:	
+	LOAD	DTheta
+	ADDI	-1
+	STORE	DTheta
+	JUMP	here
+	
+little:
+	LOADI	300
+	CALL	MoveDistance
+	JUMP	donish
 	
 	
 	
@@ -421,11 +510,15 @@ SectionOne:
 ;Assuming that the sensor reading is short range
 	
 	;Basic Reading
-	LOAD	State	
+	IN		DIST5	
 	OUT		SSEG1
+	LOAD	State
+	OUT		SSEG2
 	;LOAD	Part
 	;OUT		SSEG2
 	
+	
+	LOAD	State
 	ADDI	-1
 	JZERO	States1
 	CALL	ControlMovement
@@ -608,6 +701,7 @@ Part:				DW 0
 TimeOutOfRange:		DW 0
 State:				DW 0
 CurrentDistance:	DW 0
+Twice:				DW 0
 
 SectionThree:
 
@@ -1230,11 +1324,13 @@ FMid:     DW 350       ; 350 is a medium speed
 RMid:     DW -350
 FFast:    DW 500       ; 500 is almost max speed (511 is max)
 RFast:    DW -500
-Straight: DW &HDE8
+Straight: DW &HCE8
 
 MinBatt:  DW 140       ; 14.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
 I2CRCmd:  DW &H0190    ; write nothing, read one byte, addr 0x90
+
+Thirteen60:	DW &H600
 
 ;***************************************************************
 ;* IO address space map
