@@ -229,7 +229,7 @@ CONTENT
            0D8 : 1136;  -- 	STORE 	Delta
            0D9 : 38DC;  -- 	JPOS 	FacingAway
            0DA : 30E5;  -- 	JNEG 	FacingTowards
-           0DB : 4116;  -- 	JZERO 	iamdone
+           0DB : 40EE;  -- 	JZERO 	Realign
            0DC : 2137;  -- 	SUB 	Threshold
            0DD : 30F8;  -- 	JNEG 	BeginRealign	;if we are heading straight, see if we need to realign
            0DE : 0941;  -- 	LOAD 	DTheta
@@ -264,9 +264,9 @@ CONTENT
            0FB : 38FF;  -- 	JPOS	SecondPart
            0FC : 6814;  -- 	ADDI	20
            0FD : 30FF;  -- 	JNEG	SecondPart
-           0FE : 4116;  -- 	JZERO	iamdone		;We are in the desired range (440 - 460 H)
+           0FE : 4116;  -- 	JZERO	iamdone		;We are in the desired range (440 - 460 mm)
            0FF : 98C3;  -- 	OUT 	RESETPOS
-           100 : 4AC6;  -- 	AND		ZERO
+           100 : 0AC6;  -- 	LOAD	ZERO
            101 : 1141;  -- 	STORE	DTheta
            102 : 0935;  -- 	LOAD 	NewSonarReading
            103 : 213B;  -- 	SUB		DesiredDisFromWall		;if neg, too close to wall
@@ -283,10 +283,10 @@ CONTENT
            10E : 213B;  -- 	SUB			DesiredDisFromWall	;if neg, too close to wall
            10F : 3114;  -- 	JNEG		TurnCounterClockwise
            110 : 0AC6;  -- 	LOAD 	ZERO
-           111 : 6FFD;  -- 	ADDI	-3
+           111 : 6FF9;  -- 	ADDI	-7
            112 : 1141;  -- 	STORE 	DTheta
            113 : 2916;  -- 	JUMP	iamdone
-           114 : 0AC9;  -- 	LOAD 	THREE
+           114 : 0ACD;  -- 	LOAD 	SEVEN
            115 : 1141;  -- 	STORE 	DTheta
            116 : 0935;  -- 	LOAD	NewSonarReading
            117 : 1134;  -- 	STORE 	LastSonarReading
@@ -298,7 +298,7 @@ CONTENT
            11D : 1142;  -- 	STORE	DVel
            11E : 0AC9;  -- 	LOAD	THREE
            11F : 113D;  -- 	STORE	Part
-           120 : BB20;  -- 	LOADI	800
+           120 : B92C;  -- 	LOADI	300
            121 : 1139;  -- 	STORE	DistanceToTravel
            122 : 90C0;  -- 	IN 		XPOS
            123 : 127F;  -- 	STORE 	L2X
