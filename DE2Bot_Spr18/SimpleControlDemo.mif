@@ -298,7 +298,7 @@ CONTENT
            11D : 1142;  -- 	STORE	DVel
            11E : 0AC9;  -- 	LOAD	THREE
            11F : 113D;  -- 	STORE	Part
-           120 : B92C;  -- 	LOADI	300
+           120 : B9F4;  -- 	LOADI	500
            121 : 1139;  -- 	STORE	DistanceToTravel
            122 : 90C0;  -- 	IN 		XPOS
            123 : 127F;  -- 	STORE 	L2X

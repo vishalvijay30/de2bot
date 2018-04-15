@@ -566,7 +566,7 @@ Part3:		;Move forward x distance
 	LOAD	THREE
 	STORE	Part
 	;Store Distance to travel
-	LOADI	300
+	LOADI	500
 	STORE	DistanceToTravel
 Part3Continue:
 	;IN		DIST5
