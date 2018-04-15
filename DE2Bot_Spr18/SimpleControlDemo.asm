@@ -493,6 +493,7 @@ Realign:
 	STORE 	L2Y
 	CALL	L2ESTIMATE
 	SUB		DistanceToTravel
+	SUB		CurrentDistance
 	JNEG	iamdone ;I need to continue realigning
 	;If done realigning, fix direction by subtracting/adding 7, set Realigning bit and maybe reset odometry
 	LOAD 	ZERO
@@ -511,7 +512,6 @@ BeginRealign:
 	;figure out how far to travel
 SecondPart:
 	;Reset x,y,Theta to 0
-	OUT 	RESETPOS
 	LOAD	ZERO
 	STORE	DTheta
 	
@@ -534,6 +534,13 @@ SecondPart:
 	CALL L2Estimate
 	;Set desired travel distance to AC
 	STORE DistanceToTravel
+	
+	IN		XPOS
+	STORE	L2X
+	IN		YPOS
+	SOTRE	L2Y
+	CALL	L2Estimate
+	STORE	CurrentDistance
 	;Figure out direction to turn
 	LOAD		NewSonarReading
 	SUB			DesiredDisFromWall	;if neg, too close to wall
@@ -541,12 +548,12 @@ SecondPart:
 	;Turn
 TurnClockwise:
 	LOAD 	ZERO
-	ADDI	-3
+	ADDI	-7
 	STORE 	DTheta
 	
 	JUMP	iamdone
 TurnCounterClockwise:
-	LOAD 	THREE
+	LOAD 	SEVEN
 	STORE 	DTheta
 	
 iamdone:
@@ -568,6 +575,12 @@ Part3:		;Move forward x distance
 	;Store Distance to travel
 	LOADI	300
 	STORE	DistanceToTravel
+	IN		XPOS
+	STORE	L2X
+	IN		YPOS
+	STORE	L2Y
+	CALL	L2ESTIMATE
+	STORE	CurrentDistance
 Part3Continue:
 	;IN		DIST5
 	;OUT 	SSEG1
@@ -579,6 +592,7 @@ Part3Continue:
 	STORE 	L2Y
 	CALL	L2ESTIMATE
 	SUB		DistanceToTravel
+	SUB		CurrentDistance
 	JNEG	iamdone ;I need to continue moving
 	
 	;We are done moving
@@ -607,6 +621,7 @@ Delta:				DW &H00
 Threshold: 			DW &H0A
 Realigning: 		DW &B00		;1 if realigning, 0 if not
 DistanceToTravel: 	DW &H1F4
+CurrentDistance:	DW &H00
 Wait:				DW 0		;1 if waiting, 0 if not
 DesiredDisFromWall:	DW &H450
 LongRangeS1:		DW &H800
@@ -614,16 +629,7 @@ Part:				DW 0
 TimeOutOfRange:		DW 0
 State:				DW 0
 
-SectionThree:
-
-SectionFour:
-	
-	
-	
-	
-	
-	
-	RETI   ; return from ISR
+RETI
 	
 	
 ; Control code.  If called repeatedly, this code will attempt
