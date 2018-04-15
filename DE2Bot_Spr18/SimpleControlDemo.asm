@@ -541,12 +541,12 @@ SecondPart:
 	;Turn
 TurnClockwise:
 	LOAD 	ZERO
-	ADDI	-3
+	ADDI	-7
 	STORE 	DTheta
 	
 	JUMP	iamdone
 TurnCounterClockwise:
-	LOAD 	THREE
+	LOAD 	SEVEN
 	STORE 	DTheta
 	
 iamdone:
