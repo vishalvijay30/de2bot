@@ -88,7 +88,7 @@ Main:
 	LOAD 	Mask5
 	OUT		SONAREN	; Enable sonars 0 and 5 (180 degrees apart)
 	
-	LOADI 	500
+	LOADI 	300
 	STORE	DVel
 	
 	;AND		ZERO
@@ -99,19 +99,32 @@ State0:
 	LOADI	350
 	CALL	MoveDistance
 	
+;State0loop:
+;	IN		DIST5
+;	SUB		600
+;	JPOS	State0loop
+;	
+;	LOADI	100
+;	CALL	MoveDistance
+	
 	LOAD	ONE
 	STORE	State
+	
 State1:
 	LOAD	State
 	ADDI	-2
 	JZERO	State2
 	JUMP	State1
+	
+	
 			
 State2:
+	LOADI	600
+	CALL	MoveDistance
 	LOAD	ZERO
 	STORE	Part
 	
-	LOADI	500
+	LOADI	300
 	STORE	DVel
 	LOADI	-90
 	CALL	Turn
@@ -131,6 +144,30 @@ State3_2:
 	LOAD	FOUR
 	STORE   State
 	Jump    State4
+	
+State4:
+	LOADI	300
+	STORE	DVel
+
+	LOAD	Ft4
+	CALL	MoveDistance
+	
+;loopy:
+;	IN		DIST5
+;	ADDI	-800
+;	JNEG	loopy
+;	
+;	LOADI	300
+;	CALL	MoveDistance
+	
+	
+	
+	
+	LOADI	-90
+	CALL    Turn
+	LOAD	ZERO
+	STORE	State
+	JUMP	State0
 	
 State3:	
 	; Turn 90 degrees to right
@@ -273,15 +310,7 @@ MDStart:
 	RETURN
 		
 	
-State4:
-	LOAD	Ft4
-	ADDI	400
-	CALL	MoveDistance
-	LOADI	-90
-	CALL    Turn
-	LOAD	ZERO
-	STORE	State
-	JUMP	State0
+
 
 
 ; As a quick demo of the movement control, the robot is 
@@ -430,13 +459,12 @@ BadName:
 	
 	LOAD 	Part
 	ADDI	-3
-	JZERO	Part3Continue
 	
 	ADDI	-1
 	JZERO	Part4
 	
 	LOAD	TimeOutOfRange
-	ADDI	-5
+	ADDI	-2
 	JPOS	Part3
 	
 	
@@ -510,8 +538,6 @@ BeginRealign:
 	JZERO	iamdone		;We are in the desired range (440 - 460 mm)
 	;figure out how far to travel
 SecondPart:
-	;Reset x,y,Theta to 0
-	OUT 	RESETPOS
 	LOAD	ZERO
 	STORE	DTheta
 	
@@ -555,41 +581,7 @@ iamdone:
 	CALL 	ControlMovement
 	RETI
 	
-Part3:		;Move forward x distance
-	;IN		DIST5
-	;OUT 	SSEG1
-	
-	LOAD 	ZERO
-	STORE	DTheta
-	ADDI	200
-	STORE	DVel
-	LOAD	THREE
-	STORE	Part
-	;Store Distance to travel
-	LOADI	500
-	STORE	DistanceToTravel
-	OUT		RESETPOS
-	JUMP	iamdone
-Part3Continue:
-	;IN		DIST5
-	;OUT 	SSEG1
-	
-	;Check if we have traveled the correct distance
-	IN 		XPOS
-	STORE 	L2X
-	IN 		YPOS
-	STORE 	L2Y
-	CALL	L2ESTIMATE
-	SUB		DistanceToTravel
-	JNEG	iamdone ;I need to continue moving
-	
-	;We are done moving
-	LOAD 	FOUR
-	STORE	Part
-	LOAD	ZERO
-	STORE 	DVel
-	CALL	ControlMovement
-	RETI
+Part3:
 	
 Part4:
 	LOAD 	TWO
@@ -615,6 +607,7 @@ LongRangeS1:		DW &H800
 Part:				DW 0
 TimeOutOfRange:		DW 0
 State:				DW 0
+CurrentDistance:	DW 0
 
 SectionThree:
 
