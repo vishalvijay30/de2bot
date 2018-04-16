@@ -106,12 +106,18 @@ AddOne:
 State0:
 	;LOADI	350					;d1
 	;CALL	MoveDistance
+	OUT		RESETPOS
 	LOAD	ZERO
+	STORE	DVel
+	STORE	DTheta
 	STORE	Part		;Reset internal variables
 	STORE	Realigning
 	STORE	TimeOutOfRange
 	STORE 	State
 	STORE	Twice
+	
+	LOADI 	300
+	STORE	DVel
 State0loopTwiceReset:
 	LOAD	ZERO
 	STORE	Twice
@@ -168,7 +174,7 @@ State3_2:
 	;Move forward a certain amount
 	LOAD	Straight		;d4
 	CALL	MoveDistance
-	;JUMP	MyDistance
+	
 donish:	
 	LOADI	-90
 	CALL	Turn			;turn3
@@ -1330,7 +1336,7 @@ MinBatt:  DW 140       ; 14.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
 I2CRCmd:  DW &H0190    ; write nothing, read one byte, addr 0x90
 
-Thirteen60:	DW &H600
+Thirteen60:	DW &H800
 
 ;***************************************************************
 ;* IO address space map
