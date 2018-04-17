@@ -94,15 +94,6 @@ Main:
 	
 	JUMP	State0
 	
-	;AND		ZERO
-	;ADDI	-90
-	;CALL 	Turn
-AddOne:
-	LOAD 	Twice
-	ADDI	1
-	STORE	Twice
-	JUMP	State0loop
-	
 State0:
 	;LOADI	350					;d1
 	;CALL	MoveDistance
@@ -118,23 +109,9 @@ State0:
 	
 	LOADI 	300
 	STORE	DVel
-State0loopTwiceReset:
-	LOAD	ZERO
-	STORE	Twice
-State0loop:
-	IN		DIST5
-	SUB		Thirteen60
-	JPOS	State0loopTwiceReset
+
 	
-	LOAD 	Twice
-	ADDI	-3
-	JZERO	AddOne			;has to read short range multiple times
-	JNEG	AddOne
-	
-	LOAD	Zero
-	STORE	Twice
-	
-	LOADI	300
+	LOADI	350
 	CALL	MoveDistance
 	
 	LOAD	ONE
@@ -160,7 +137,7 @@ State2:
 	CALL	Turn
 	
 	LOAD	Ft4
-	ADDI	1000			;d3
+	ADDI	800			;d3
 	CALL    MoveDistance
 	
 	LOADI	-83			;turn2
@@ -173,6 +150,7 @@ State2:
 State3_2:
 	;Move forward a certain amount
 	LOAD	Straight		;d4
+	ADDI	200
 	CALL	MoveDistance
 	
 donish:	
@@ -527,6 +505,37 @@ SectionOne:
 	LOAD	State
 	ADDI	-1
 	JZERO	States1
+	
+	ADDI	-2
+	;JZERO	States3
+	
+	CALL	ControlMovement
+	RETI
+
+States3:
+	IN		DIST1
+	STORE	NewSonarReading
+	
+	SUB		LastSonarReading
+	SUB		Threshold
+	JPOS	TurnLeft
+	
+	ADD		Threshold
+	ADD		Threshold
+	JNEG	TurnRight
+	
+TurnRight:
+	LOAD	DTheta
+	ADDI	-1
+	STORE	DTheta
+	JUMP	donezo
+TurnLeft:
+	LOAD	DTheta
+	ADDI	1
+	STORE	DTheta
+	JUMP	donezo
+	
+donezo:
 	CALL	ControlMovement
 	RETI
 	
